@@ -1,0 +1,35 @@
+# Binaries for programs and plugins
+/bin/
+/out/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*.test
+
+# Configuration files
+.env
+*.local
+*.config
+
+# Vendor dependencies (if you're using vendoring)
+vendor/
+
+# OS-specific files
+.DS_Store            # macOS
+Thumbs.db            # Windows
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Go module files (lock files and cached module data)
+go.sum
+go.work.sum
