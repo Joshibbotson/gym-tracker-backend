@@ -22,20 +22,20 @@ type User struct {
 	UpdatedAt time.Time          `bson:"updatedAt,omitempty" json:"updatedAt"`
 }
 
-// AuthRepository defines methods for user authentication actions
-type AuthRepository interface {
+// AuthService defines methods for user authentication actions
+type AuthService interface {
 	GetUserByEmail(email string) (*User, error)
 	CreateUser(name, email, password string) (*User, error)
 }
 
-type authRepository struct{}
+type authService struct{}
 
-func NewAuthRepository() AuthRepository {
-	return &authRepository{}
+func NewAuthService() AuthService {
+	return &authService{}
 }
 
-// (r *authRepository) this is a method receiver it's like a class and this is it's method
-func (r *authRepository) CreateUser(name string, email string, password string) (*User, error) {
+// (r *authService) this is a method receiver it's like a class and this is it's method
+func (r *authService) CreateUser(name string, email string, password string) (*User, error) {
 	collection := db.Client.Database("gym-tracker").Collection("user")
 
 	user := User{
@@ -53,7 +53,7 @@ func (r *authRepository) CreateUser(name string, email string, password string) 
 	return &user, nil
 }
 
-func (r *authRepository) GetUserByEmail(email string) (*User, error) {
+func (r *authService) GetUserByEmail(email string) (*User, error) {
 	collection := db.Client.Database("gym-tracker").Collection("user")
 
 	var user User

@@ -9,10 +9,10 @@ import (
 )
 
 type AuthHandler struct {
-	service service.AuthRepository
+	Service service.AuthService
 }
 
-func (h *AuthHandler) handler(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) Handler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
 		user, err := h.createUser(w, r)
@@ -38,7 +38,7 @@ func (h *AuthHandler) createUser(w http.ResponseWriter, r *http.Request) (*servi
 		return nil, err
 	}
 
-	createdUser, err := h.service.CreateUser(user.Name, user.Email, user.Password)
+	createdUser, err := h.Service.CreateUser(user.Name, user.Email, user.Password)
 	if err != nil {
 		return nil, err
 	}
