@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/joshibbotson/gym-tracker-backend/internal/db"
@@ -18,8 +17,5 @@ func main() {
 	http.HandleFunc("/user", authHandler.Handler)
 	// put in env variable.
 	http.ListenAndServe(":8888", nil)
-
-	fmt.Println("Running application...")
-	fmt.Println("Starting My Go Project")
 
 }

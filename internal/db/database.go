@@ -1,5 +1,3 @@
-// db/database.go
-
 package db
 
 import (
@@ -15,7 +13,6 @@ import (
 var Client *mongo.Client
 
 func ConnectDB() {
-	// Updated URI with authSource=admin
 	// env variable
 	uri := "mongodb://localhost:27017/gym-tracker"
 

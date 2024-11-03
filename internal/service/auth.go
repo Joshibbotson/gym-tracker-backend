@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/joshibbotson/gym-tracker-backend/internal/db"
@@ -15,11 +16,13 @@ import (
 // handle business logic for auth
 // register, login, validateToken,
 
+const DB_NAME = "gym-tracker"
+
 type User struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	Name      string             `bson:"name" json:"name"`
 	Email     string             `bson:"email" json:"email"`
-	Password  string             `bson:"password" json:"-"`
+	Password  string             `bson:"password" json:"password"`
 	CreatedAt time.Time          `bson:"createdAt,omitempty" json:"createdAt"`
 	UpdatedAt time.Time          `bson:"updatedAt,omitempty" json:"updatedAt"`
 }
@@ -28,6 +31,7 @@ type User struct {
 type AuthService interface {
 	GetUserByEmail(email string) (*User, error)
 	CreateUser(name, email, password string) (*User, error)
+	Login(email, password string) (*User, error)
 }
 
 type authService struct{}
@@ -38,7 +42,7 @@ func NewAuthService() AuthService {
 
 // (r *authService) this is a method receiver it's like a class and this is it's method
 func (r *authService) CreateUser(name string, email string, password string) (*User, error) {
-	collection := db.Client.Database("gym-tracker").Collection("user")
+	collection := db.Client.Database(DB_NAME).Collection("user")
 
 	// Check if a user with the email already exists
 	err := collection.FindOne(context.TODO(), bson.M{"email": email}).Err()
@@ -53,7 +57,7 @@ func (r *authService) CreateUser(name string, email string, password string) (*U
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println("Generated hash during user creation:", hashedPassword)
 	user := User{
 		Name:     name,
 		Email:    email,
@@ -69,6 +73,45 @@ func (r *authService) CreateUser(name string, email string, password string) (*U
 	return &user, nil
 }
 
+func (r *authService) Login(email string, password string) (*User, error) {
+	collection := db.Client.Database(DB_NAME).Collection("user")
+
+	// Set a timeout for the database query
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Debugging: Log email to ensure correct email is received
+	fmt.Println("Attempting login for email:", email)
+
+	// Find the user by email
+	var user User
+	err := collection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			fmt.Println("No user found for email:", email) // Debugging
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+
+	// Debugging: Log found user’s email
+	fmt.Println("User found in database with email:", user.Email)
+
+	fmt.Println("Stored hashed password:", user.Password)
+	fmt.Println("Entered password:", password)
+
+	// Compare the hashed password
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		fmt.Println("Password comparison error:", err) // Debugging
+		return nil, errors.New("incorrect password")
+	}
+
+	// Authentication successful
+	fmt.Println("User authenticated successfully:", email) // Debugging
+	return &user, nil
+}
+
 func (r *authService) HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
@@ -80,7 +123,7 @@ func (r *authService) VerifyPassword(password, hash string) bool {
 }
 
 func (r *authService) GetUserByEmail(email string) (*User, error) {
-	collection := db.Client.Database("gym-tracker").Collection("user")
+	collection := db.Client.Database(DB_NAME).Collection("user")
 
 	var user User
 	err := collection.FindOne(context.TODO(), bson.M{"email": email}).Decode(&user)
