@@ -2,12 +2,14 @@ package service
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/joshibbotson/gym-tracker-backend/internal/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // handle business logic for auth
@@ -38,10 +40,24 @@ func NewAuthService() AuthService {
 func (r *authService) CreateUser(name string, email string, password string) (*User, error) {
 	collection := db.Client.Database("gym-tracker").Collection("user")
 
+	// Check if a user with the email already exists
+	err := collection.FindOne(context.TODO(), bson.M{"email": email}).Err()
+	if err != nil && err != mongo.ErrNoDocuments {
+		return nil, err
+	}
+	if err == nil {
+		return nil, errors.New("user with this email already exists")
+	}
+
+	hashedPassword, err := r.HashPassword(password)
+	if err != nil {
+		return nil, err
+	}
+
 	user := User{
 		Name:     name,
 		Email:    email,
-		Password: password, //hash this really
+		Password: hashedPassword,
 	}
 
 	result, err := collection.InsertOne(context.TODO(), user)
@@ -51,6 +67,16 @@ func (r *authService) CreateUser(name string, email string, password string) (*U
 
 	user.ID = result.InsertedID.(primitive.ObjectID)
 	return &user, nil
+}
+
+func (r *authService) HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
+
+func (r *authService) VerifyPassword(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }
 
 func (r *authService) GetUserByEmail(email string) (*User, error) {
