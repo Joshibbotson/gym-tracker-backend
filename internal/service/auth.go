@@ -135,3 +135,7 @@ func (r *authService) GetUserByEmail(email string) (*User, error) {
 	}
 	return &user, nil
 }
+
+func (r *authService) GenerateToken() (string, error) {
+
+}
