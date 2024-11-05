@@ -9,6 +9,7 @@ import (
 	"github.com/joshibbotson/gym-tracker-backend/internal/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/internal/uuid"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -27,11 +28,19 @@ type User struct {
 	UpdatedAt time.Time          `bson:"updatedAt,omitempty" json:"updatedAt"`
 }
 
+type Session struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty"`
+	UserID    primitive.ObjectID `bson:"user_id,omitempty"`
+	SessionID string             `bson:"session_id"`
+	ExpiresAt time.Time          `bson:"expires_at"`
+}
+
 // AuthService defines methods for user authentication actions
 type AuthService interface {
 	GetUserByEmail(email string) (*User, error)
 	CreateUser(name, email, password string) (*User, error)
 	Login(email, password string) (*User, error)
+	createSession(userID primitive.ObjectID) (string, error)
 }
 
 type authService struct{}
@@ -73,15 +82,13 @@ func (r *authService) CreateUser(name string, email string, password string) (*U
 	return &user, nil
 }
 
+// should return a cookie perhaps instead of User?
 func (r *authService) Login(email string, password string) (*User, error) {
 	collection := db.Client.Database(DB_NAME).Collection("user")
 
 	// Set a timeout for the database query
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
-	// Debugging: Log email to ensure correct email is received
-	fmt.Println("Attempting login for email:", email)
 
 	// Find the user by email
 	var user User
@@ -94,21 +101,17 @@ func (r *authService) Login(email string, password string) (*User, error) {
 		return nil, err
 	}
 
-	// Debugging: Log found user’s email
-	fmt.Println("User found in database with email:", user.Email)
-
-	fmt.Println("Stored hashed password:", user.Password)
-	fmt.Println("Entered password:", password)
+	sessionID, err := r.createSession(user.ID)
+	if err != nil {
+		return nil, err
+	}
 
 	// Compare the hashed password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		fmt.Println("Password comparison error:", err) // Debugging
 		return nil, errors.New("incorrect password")
 	}
 
-	// Authentication successful
-	fmt.Println("User authenticated successfully:", email) // Debugging
 	return &user, nil
 }
 
@@ -136,6 +139,21 @@ func (r *authService) GetUserByEmail(email string) (*User, error) {
 	return &user, nil
 }
 
-func (r *authService) GenerateToken() (string, error) {
+func (*authService) createSession(userID primitive.ObjectID) (string, error) {
+	sessionCollection := db.Client.Database(DB_NAME).Collection("session")
+	sessionID := uuid.New().String()
+	expiresAt := time.Now().Add(24 * time.Hour)
 
+	session := Session{
+		UserID:    userID,
+		SessionID: sessionID,
+		ExpiresAt: expiresAt,
+	}
+
+	_, err := sessionCollection.InsertOne(context.TODO(), session)
+	if err != nil {
+		return "", err
+	}
+
+	return sessionID, nil
 }
