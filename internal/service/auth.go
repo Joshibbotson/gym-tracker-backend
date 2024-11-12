@@ -39,7 +39,7 @@ type Session struct {
 type AuthService interface {
 	GetUserByEmail(email string) (*User, error)
 	CreateUser(name, email, password string) (*User, error)
-	Login(email, password string) (*User, error)
+	Login(email, password string) (*string, error)
 	createSession(userID primitive.ObjectID) (string, error)
 }
 
@@ -83,7 +83,7 @@ func (r *authService) CreateUser(name string, email string, password string) (*U
 }
 
 // should return a cookie perhaps instead of User?
-func (r *authService) Login(email string, password string) (*User, error) {
+func (r *authService) Login(email string, password string) (*string, error) {
 	collection := db.Client.Database(DB_NAME).Collection("user")
 
 	// Set a timeout for the database query
@@ -112,7 +112,7 @@ func (r *authService) Login(email string, password string) (*User, error) {
 		return nil, errors.New("incorrect password")
 	}
 
-	return &user, nil
+	return &sessionID, nil
 }
 
 func (r *authService) HashPassword(password string) (string, error) {
