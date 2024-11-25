@@ -40,7 +40,7 @@ type AuthService interface {
 	GetUserByEmail(email string) (*User, error)
 	CreateUser(name, email, password string) (*User, error)
 	Login(email, password string) (*string, error)
-	createSession(userID primitive.ObjectID) (string, error)
+	createOrUpdateSession(userID primitive.ObjectID) (string, error)
 }
 
 type authService struct{}
@@ -101,7 +101,7 @@ func (r *authService) Login(email string, password string) (*string, error) {
 		return nil, err
 	}
 
-	sessionID, err := r.createSession(user.ID)
+	sessionID, err := r.createOrUpdateSession(user.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func (r *authService) GetUserByEmail(email string) (*User, error) {
 	return &user, nil
 }
 
-func (*authService) createSession(userID primitive.ObjectID) (string, error) {
+func (*authService) createOrUpdateSession(userID primitive.ObjectID) (string, error) {
 	sessionCollection := db.Client.Database(DB_NAME).Collection("session")
 	sessionID := uuid.New().String()
 	expiresAt := time.Now().Add(24 * time.Hour)
@@ -150,7 +150,29 @@ func (*authService) createSession(userID primitive.ObjectID) (string, error) {
 		ExpiresAt: expiresAt,
 	}
 
-	_, err := sessionCollection.InsertOne(context.TODO(), session)
+	update := bson.M{
+		"$set": bson.M{
+			"session_id": sessionID,
+			"expires_at": expiresAt,
+		},
+	}
+
+	err := sessionCollection.FindOneAndUpdate(
+		context.TODO(),
+		bson.M{"user_id": session.UserID},
+		update).Decode(&session)
+	if err != nil {
+		fmt.Printf("FindOneAndUpdate error: %v\n", err)
+	} else {
+		fmt.Printf("Existing session: %+v\n", session)
+	}
+
+	if err == nil {
+		return sessionID, nil
+	}
+
+	// if no session available insert one.
+	_, err = sessionCollection.InsertOne(context.TODO(), session)
 	if err != nil {
 		return "", err
 	}
