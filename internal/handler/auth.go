@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -23,17 +24,42 @@ func (h *AuthHandler) Handler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(user)
 
-	case http.MethodGet:
-		user, err := h.login(w, r)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(user)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
+}
+
+func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+	// Handle preflight requests (OPTIONS method)
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	sessionInfo, err := h.login(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    sessionInfo.SessionID,
+		Expires:  sessionInfo.ExpiresAt,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false,
+	})
+
+	fmt.Printf("Response Headers: %v\n", w.Header())
+
+	json.NewEncoder(w).Encode(sessionInfo)
 }
 
 func (h *AuthHandler) createUser(w http.ResponseWriter, r *http.Request) (*service.User, error) {
@@ -55,7 +81,7 @@ func (h *AuthHandler) createUser(w http.ResponseWriter, r *http.Request) (*servi
 	return createdUser, nil
 }
 
-func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) (*string, error) {
+func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) (*service.Session, error) {
 	body, err := getBody(r.Body)
 	if err != nil {
 		return nil, err
@@ -73,12 +99,12 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) (*string, er
 	println("email:", loginDetails.Email)
 	println("password:", loginDetails.Password)
 
-	sessionId, err := h.Service.Login(loginDetails.Email, loginDetails.Password)
+	session, err := h.Service.Login(loginDetails.Email, loginDetails.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	return sessionId, nil
+	return session, nil
 }
 
 func getBody(body io.ReadCloser) ([]byte, error) {

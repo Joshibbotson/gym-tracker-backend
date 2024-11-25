@@ -14,7 +14,9 @@ func main() {
 
 	authService := service.NewAuthService()
 	authHandler := &handler.AuthHandler{Service: authService}
-	http.HandleFunc("/user", authHandler.Handler)
+	http.HandleFunc("/auth", authHandler.Handler)
+	http.HandleFunc("/auth/login", authHandler.LoginHandler)
+
 	// put in env variable.
 	http.ListenAndServe(":8888", nil)
 
