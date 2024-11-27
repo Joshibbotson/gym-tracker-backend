@@ -30,9 +30,10 @@ func (h *AuthHandler) Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:4200")        // Allow only your frontend origin
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")          // Specify allowed methods
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization") // Specify allowed headers
+	w.Header().Set("Access-Control-Allow-Credentials", "true")                    // Allow credentials (cookies)
 
 	// Handle preflight requests (OPTIONS method)
 	if r.Method == http.MethodOptions {
@@ -54,7 +55,8 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Expires:  sessionInfo.ExpiresAt,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false,
+		Secure:   false, // Use true in production with HTTPS
+		SameSite: http.SameSiteLaxMode,
 	})
 
 	fmt.Printf("Response Headers: %v\n", w.Header())

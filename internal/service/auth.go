@@ -101,15 +101,15 @@ func (r *authService) Login(email string, password string) (*Session, error) {
 		return nil, err
 	}
 
-	session, err := r.createOrUpdateSession(user.ID)
-	if err != nil {
-		return nil, err
-	}
-
 	// Compare the hashed password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return nil, errors.New("incorrect password")
+	}
+
+	session, err := r.createOrUpdateSession(user.ID)
+	if err != nil {
+		return nil, err
 	}
 
 	return &session, nil
