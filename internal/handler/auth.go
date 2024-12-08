@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -41,13 +40,12 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// authenticate the user
 	sessionInfo, err := h.login(w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
@@ -55,12 +53,11 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Expires:  sessionInfo.ExpiresAt,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false, // Use true in production with HTTPS
-		SameSite: http.SameSiteLaxMode,
+		Secure:   false,                 // Set to true for HTTPS in production
+		SameSite: http.SameSiteNoneMode, // Required for cross-origin cookies
 	})
 
-	fmt.Printf("Response Headers: %v\n", w.Header())
-
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(sessionInfo)
 }
 
