@@ -29,10 +29,10 @@ func (h *AuthHandler) Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:4200")        // Allow only your frontend origin
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")          // Specify allowed methods
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization") // Specify allowed headers
-	w.Header().Set("Access-Control-Allow-Credentials", "true")                    // Allow credentials (cookies)
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:4200")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	// Handle preflight requests (OPTIONS method)
 	if r.Method == http.MethodOptions {
@@ -53,12 +53,23 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Expires:  sessionInfo.ExpiresAt,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false,                 // Set to true for HTTPS in production
-		SameSite: http.SameSiteNoneMode, // Required for cross-origin cookies
+		Secure:   false,
+		SameSite: http.SameSiteNoneMode,
 	})
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(sessionInfo)
+
+	type UserDetails struct {
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	}
+	userDetails := UserDetails{
+		Name:  sessionInfo.Name,
+		Email: sessionInfo.Email,
+	}
+
+	json.NewEncoder(w).Encode(userDetails)
+
 }
 
 func (h *AuthHandler) createUser(w http.ResponseWriter, r *http.Request) (*service.User, error) {

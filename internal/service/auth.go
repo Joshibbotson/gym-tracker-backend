@@ -31,6 +31,8 @@ type User struct {
 type Session struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty"`
 	UserID    primitive.ObjectID `bson:"user_id,omitempty"`
+	Name      string             `bson:"name"`
+	Email     string             `bson:"email"`
 	SessionID string             `bson:"session_id"`
 	ExpiresAt time.Time          `bson:"expires_at"`
 }
@@ -40,7 +42,7 @@ type AuthService interface {
 	GetUserByEmail(email string) (*User, error)
 	CreateUser(name, email, password string) (*User, error)
 	Login(email, password string) (*Session, error)
-	createOrUpdateSession(userID primitive.ObjectID) (Session, error)
+	createOrUpdateSession(userID primitive.ObjectID, name string, email string) (Session, error)
 }
 
 type authService struct{}
@@ -107,7 +109,7 @@ func (r *authService) Login(email string, password string) (*Session, error) {
 		return nil, errors.New("incorrect password")
 	}
 
-	session, err := r.createOrUpdateSession(user.ID)
+	session, err := r.createOrUpdateSession(user.ID, user.Name, user.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -139,13 +141,15 @@ func (r *authService) GetUserByEmail(email string) (*User, error) {
 	return &user, nil
 }
 
-func (*authService) createOrUpdateSession(userID primitive.ObjectID) (Session, error) {
+func (*authService) createOrUpdateSession(userID primitive.ObjectID, name string, email string) (Session, error) {
 	sessionCollection := db.Client.Database(DB_NAME).Collection("session")
 	sessionID := uuid.New().String()
 	expiresAt := time.Now().Add(24 * time.Hour)
 
 	session := Session{
 		UserID:    userID,
+		Name:      name,
+		Email:     email,
 		SessionID: sessionID,
 		ExpiresAt: expiresAt,
 	}
