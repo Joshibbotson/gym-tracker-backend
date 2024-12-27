@@ -16,10 +16,8 @@ func ConnectDB() {
 	// env variable
 	uri := "mongodb://localhost:27017/gym-tracker"
 
-	// Set MongoDB client options
 	clientOptions := options.Client().ApplyURI(uri)
 
-	// Connect to MongoDB
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		log.Fatal("Failed to connect:", err)
@@ -30,9 +28,8 @@ func ConnectDB() {
 	if err := client.Database("admin").RunCommand(context.TODO(), bson.D{{Key: "ping", Value: 1}}).Decode(&result); err != nil {
 		panic(err)
 	}
-	fmt.Println("Pinged your deployment. You successfully connected to MongoDB!")
 
-	fmt.Println("Connected to MongoDB!")
+	fmt.Println("Connected to MongoDB")
 	Client = client
 }
 

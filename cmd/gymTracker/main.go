@@ -4,16 +4,15 @@ import (
 	"net/http"
 
 	"github.com/joshibbotson/gym-tracker-backend/internal/db"
-	"github.com/joshibbotson/gym-tracker-backend/internal/handler"
-	"github.com/joshibbotson/gym-tracker-backend/internal/service"
+	"github.com/joshibbotson/gym-tracker-backend/internal/modules/auth"
 )
 
 func main() {
 	db.ConnectDB()
 	defer db.DisconnectDB()
 
-	authService := service.NewAuthService()
-	authHandler := &handler.AuthHandler{Service: authService}
+	authService := auth.NewAuthService()
+	authHandler := &auth.AuthHandler{Service: authService}
 	http.HandleFunc("/auth", authHandler.Handler)
 	http.HandleFunc("/auth/login", authHandler.LoginHandler)
 

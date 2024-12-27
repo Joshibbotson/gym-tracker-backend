@@ -1,4 +1,4 @@
-package handler
+package workouts
 
 // handle CRUD ops on workout configs
 import "net/http"

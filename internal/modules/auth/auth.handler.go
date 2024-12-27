@@ -1,15 +1,13 @@
-package handler
+package auth
 
 import (
 	"encoding/json"
 	"io"
 	"net/http"
-
-	"github.com/joshibbotson/gym-tracker-backend/internal/service"
 )
 
 type AuthHandler struct {
-	Service service.AuthService
+	Service AuthService
 }
 
 func (h *AuthHandler) Handler(w http.ResponseWriter, r *http.Request) {
@@ -72,13 +70,13 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *AuthHandler) createUser(w http.ResponseWriter, r *http.Request) (*service.User, error) {
+func (h *AuthHandler) createUser(w http.ResponseWriter, r *http.Request) (*User, error) {
 	body, err := getBody(r.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	var user service.User
+	var user User
 	if err := json.Unmarshal(body, &user); err != nil {
 		return nil, err
 	}
@@ -91,7 +89,7 @@ func (h *AuthHandler) createUser(w http.ResponseWriter, r *http.Request) (*servi
 	return createdUser, nil
 }
 
-func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) (*service.Session, error) {
+func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) (*Session, error) {
 	body, err := getBody(r.Body)
 	if err != nil {
 		return nil, err
