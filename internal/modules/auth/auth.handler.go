@@ -94,6 +94,7 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) (*Session, e
 	if err != nil {
 		return nil, err
 	}
+
 	type login struct {
 		Email    string
 		Password string
@@ -123,28 +124,3 @@ func getBody(body io.ReadCloser) ([]byte, error) {
 	}
 	return data, nil
 }
-
-// func sessionMiddleware(next http.Handler) http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		// Get the session cookie
-// 		cookie, err := r.Cookie("session_id")
-// 		if err != nil {
-// 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-// 			return
-// 		}
-
-// 		sessionID := cookie.Value
-
-// 		// Check session in MongoDB
-// 		var session service.Session
-// 		err = sessionCollection.FindOne(context.TODO(), bson.M{"session_id": sessionID}).Decode(&session)
-// 		if err != nil || session.ExpiresAt.Before(time.Now()) {
-// 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-// 			return
-// 		}
-
-// 		// Attach user ID to the context for later use in the request lifecycle
-// 		ctx := context.WithValue(r.Context(), "userID", session.UserID)
-// 		next.ServeHTTP(w, r.WithContext(ctx))
-// 	})
-// }

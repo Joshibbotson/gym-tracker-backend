@@ -43,6 +43,7 @@ type AuthService interface {
 	CreateUser(name, email, password string) (*User, error)
 	Login(email, password string) (*Session, error)
 	createOrUpdateSession(userID primitive.ObjectID, name string, email string) (Session, error)
+	GetUserBySessionId(sessionId string) (User, error)
 }
 
 type authService struct{}
@@ -139,6 +140,26 @@ func (r *authService) GetUserByEmail(email string) (*User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *authService) GetUserBySessionId(sessionId string) (User, error) {
+	sessionCollection := db.Client.Database(DB_NAME).Collection("session")
+
+	var session Session
+	err := sessionCollection.FindOne(context.TODO(), bson.M{"session_id": sessionId}).Decode(&session)
+	if err != nil {
+		return User{}, fmt.Errorf("failed to fetch session: %v", err)
+	}
+
+	userCollection := db.Client.Database(DB_NAME).Collection("user")
+	var user User
+
+	err = userCollection.FindOne(context.TODO(), bson.M{"_id": session.UserID}).Decode(&user)
+	if err != nil {
+		return User{}, fmt.Errorf("failed to fetch user: %v", err)
+	}
+
+	return user, nil
 }
 
 func (*authService) createOrUpdateSession(userID primitive.ObjectID, name string, email string) (Session, error) {
