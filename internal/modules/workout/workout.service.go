@@ -1,8 +1,10 @@
 package workout
 
 import (
+	"context"
 	"time"
 
+	. "github.com/joshibbotson/gym-tracker-backend/internal/db"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -39,16 +41,21 @@ type WorkoutConfig struct {
 }
 
 type Workout struct {
-	ID   primitive.ObjectID `bson:"_id, omitempty" json:"id"`
-	Date time.Time          `bson:"date" json:"date"`
+	ID        primitive.ObjectID `bson:"_id, omitempty" json:"id"`
+	Date      time.Time          `bson:"date" json:"date"`
+	Workout   *WorkoutConfig     `bson:"workout,omitempty" json:"workout"` // Pointer to make it nullable
+	CreatedAt time.Time          `bson:"createdAt,omitempty" json:"createdAt"`
+	UpdatedAt time.Time          `bson:"updatedAt,omitempty" json:"updatedAt"`
+}
 
-	CreatedAt time.Time `bson:"createdAt,omitempty" json:"createdAt"`
-	UpdatedAt time.Time `bson:"updatedAt,omitempty" json:"updatedAt"`
+type CreateWorkout struct {
+	Date    time.Time     `bson:"date" json:"date"`
+	Workout WorkoutConfig `bson:"workout" json:"workout"`
 }
 
 // handle business logic for workouts
 type WorkoutService interface {
-	// createWorkout(workout CreateWorkout) (*Workout, error)
+	createWorkout(workout CreateWorkout) (*Workout, error)
 }
 
 type workoutService struct{}
@@ -57,5 +64,21 @@ func NewWorkoutService() WorkoutService {
 	return &workoutService{}
 }
 
-type CreateWorkout struct {
+func (r *workoutService) createWorkout(workout CreateWorkout) (*Workout, error) {
+	collection := Client.Database(DB_NAME).Collection("workout")
+
+	newWorkout := Workout{
+		ID:        primitive.NewObjectID(),
+		Date:      workout.Date,
+		Workout:   &workout.Workout,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	_, err := collection.InsertOne(context.TODO(), newWorkout)
+	if err != nil {
+		return nil, err
+	}
+
+	return &newWorkout, nil
 }

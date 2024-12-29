@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/joshibbotson/gym-tracker-backend/internal/db"
+	. "github.com/joshibbotson/gym-tracker-backend/internal/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,8 +16,6 @@ import (
 
 // handle business logic for auth
 // register, login, validateToken,
-
-const DB_NAME = "gym-tracker"
 
 type User struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
@@ -52,7 +50,7 @@ func NewAuthService() AuthService {
 
 // (r *authService) this is a method receiver it's like a class and this is it's method
 func (r *authService) CreateUser(name string, email string, password string) (*User, error) {
-	collection := db.Client.Database(DB_NAME).Collection("user")
+	collection := Client.Database(DB_NAME).Collection("user")
 
 	// Check if a user with the email already exists
 	err := collection.FindOne(context.TODO(), bson.M{"email": email}).Err()
@@ -85,7 +83,7 @@ func (r *authService) CreateUser(name string, email string, password string) (*U
 
 // should return a cookie perhaps instead of User?
 func (r *authService) Login(email string, password string) (*Session, error) {
-	collection := db.Client.Database(DB_NAME).Collection("user")
+	collection := Client.Database(DB_NAME).Collection("user")
 
 	// Set a timeout for the database query
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -127,7 +125,7 @@ func (r *authService) VerifyPassword(password, hash string) bool {
 }
 
 func (r *authService) GetUserByEmail(email string) (*User, error) {
-	collection := db.Client.Database(DB_NAME).Collection("user")
+	collection := Client.Database(DB_NAME).Collection("user")
 
 	var user User
 	err := collection.FindOne(context.TODO(), bson.M{"email": email}).Decode(&user)
@@ -141,7 +139,7 @@ func (r *authService) GetUserByEmail(email string) (*User, error) {
 }
 
 func (*authService) createOrUpdateSession(userID primitive.ObjectID, name string, email string) (Session, error) {
-	sessionCollection := db.Client.Database(DB_NAME).Collection("session")
+	sessionCollection := Client.Database(DB_NAME).Collection("session")
 	sessionID := uuid.New().String()
 	expiresAt := time.Now().Add(24 * time.Hour)
 
