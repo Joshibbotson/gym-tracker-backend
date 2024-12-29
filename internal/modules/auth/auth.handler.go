@@ -2,8 +2,9 @@ package auth
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
+
+	. "github.com/joshibbotson/gym-tracker-backend/internal/util"
 )
 
 type AuthHandler struct {
@@ -71,7 +72,7 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) createUser(w http.ResponseWriter, r *http.Request) (*User, error) {
-	body, err := getBody(r.Body)
+	body, err := GetBody(r.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +91,7 @@ func (h *AuthHandler) createUser(w http.ResponseWriter, r *http.Request) (*User,
 }
 
 func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) (*Session, error) {
-	body, err := getBody(r.Body)
+	body, err := GetBody(r.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -114,13 +115,4 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) (*Session, e
 	}
 
 	return session, nil
-}
-
-func getBody(body io.ReadCloser) ([]byte, error) {
-	defer body.Close()
-	data, err := io.ReadAll(body)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
 }
