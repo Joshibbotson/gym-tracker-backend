@@ -3,6 +3,7 @@ package workout
 // handle CRUD ops on workout configs
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -16,23 +17,21 @@ func NewWorkoutHandler(service WorkoutService) *WorkoutHandler {
 	}
 }
 
-// Handler for HTTP requests
 func (h *WorkoutHandler) Handler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		// Handle POST request to create a workout
 		h.handleCreateWorkout(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
-// handle POST request to create a new workout
 func (h *WorkoutHandler) handleCreateWorkout(w http.ResponseWriter, r *http.Request) {
 	// Decode the request body into the CreateWorkout struct
 	var createWorkout CreateWorkout
 	err := json.NewDecoder(r.Body).Decode(&createWorkout)
 	if err != nil {
+		fmt.Println("err:", err)
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}

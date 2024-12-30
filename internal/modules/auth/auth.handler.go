@@ -28,16 +28,6 @@ func (h *AuthHandler) Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:4200")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-
-	// Handle preflight requests (OPTIONS method)
-	if r.Method == http.MethodOptions {
-		w.WriteHeader(http.StatusNoContent)
-		return
-	}
 
 	// authenticate the user
 	sessionInfo, err := h.login(w, r)
@@ -53,8 +43,19 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   false,
-		SameSite: http.SameSiteNoneMode,
+		SameSite: http.SameSiteLaxMode,
 	})
+
+	// for production
+	// 	http.SetCookie(w, &http.Cookie{
+	//     Name:     "session_token",
+	//     Value:    sessionInfo.SessionID,
+	//     Expires:  sessionInfo.ExpiresAt,
+	//     Path:     "/",
+	//     HttpOnly: true,
+	//     Secure:   true,
+	//     SameSite: http.SameSiteNoneMode,
+	// })
 
 	w.WriteHeader(http.StatusOK)
 

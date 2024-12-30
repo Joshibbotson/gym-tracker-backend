@@ -153,7 +153,6 @@ func (*authService) createOrUpdateSession(userID primitive.ObjectID, name string
 
 	update := bson.M{
 		"$set": bson.M{
-			"session_id": sessionID,
 			"expires_at": expiresAt,
 		},
 	}
