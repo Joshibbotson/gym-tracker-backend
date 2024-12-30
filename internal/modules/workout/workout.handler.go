@@ -28,8 +28,9 @@ func (h *WorkoutHandler) Handler(w http.ResponseWriter, r *http.Request) {
 
 func (h *WorkoutHandler) handleCreateWorkout(w http.ResponseWriter, r *http.Request) {
 	// Decode the request body into the CreateWorkout struct
-	var createWorkout CreateWorkout
-	err := json.NewDecoder(r.Body).Decode(&createWorkout)
+	var decodedBody CreateWorkoutRequest
+
+	err := json.NewDecoder(r.Body).Decode(&decodedBody)
 	if err != nil {
 		fmt.Println("err:", err)
 		http.Error(w, "Invalid input", http.StatusBadRequest)
@@ -37,7 +38,7 @@ func (h *WorkoutHandler) handleCreateWorkout(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Call the service to create a new workout
-	workout, err := h.Service.createWorkout(createWorkout)
+	workout, err := h.Service.createWorkout(decodedBody)
 	if err != nil {
 		http.Error(w, "Error creating workout", http.StatusInternalServerError)
 		return
