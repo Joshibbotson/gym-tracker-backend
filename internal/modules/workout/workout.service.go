@@ -50,7 +50,7 @@ type Workout struct {
 }
 
 type CreateWorkoutRequest struct {
-	Date         time.Time     `bson:"date" json:"date"`
+	Date         string        `bson:"date" json:"date"`
 	Weight       *float64      `json:"weight,omitempty" bson:"weight,omitempty"`
 	WorkoutType  *WorkoutType  `json:"workoutType,omitempty" bson:"workoutType,omitempty"`
 	CaloriePhase *CaloriePhase `json:"caloriePhase,omitempty" bson:"caloriePhase,omitempty"`
@@ -76,9 +76,10 @@ func NewWorkoutService() WorkoutService {
 
 func (r *workoutService) createWorkout(workout CreateWorkoutRequest) (*Workout, error) {
 	collection := db.Client.Database(db.DB_NAME).Collection("workout")
-	layout := "2006-01-02T15:04:05Z-07:00"
+	layout := "2006-01-02"
 
-	date, dateErr := time.Parse(layout, workout.Date.String())
+	// tbh we may want this time from the frontend
+	parsedDate, dateErr := time.Parse(layout, workout.Date)
 	if dateErr != nil {
 		fmt.Println("Error parsing date:", dateErr)
 		return &Workout{}, dateErr
@@ -98,7 +99,7 @@ func (r *workoutService) createWorkout(workout CreateWorkoutRequest) (*Workout, 
 
 	newWorkout := Workout{
 		ID:        primitive.NewObjectID(),
-		Date:      date,
+		Date:      parsedDate,
 		Workout:   &Config,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),

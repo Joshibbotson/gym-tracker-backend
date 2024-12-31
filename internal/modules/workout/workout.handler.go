@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	util "github.com/joshibbotson/gym-tracker-backend/internal/util"
 )
 
 type WorkoutHandler struct {
@@ -28,9 +30,15 @@ func (h *WorkoutHandler) Handler(w http.ResponseWriter, r *http.Request) {
 
 func (h *WorkoutHandler) handleCreateWorkout(w http.ResponseWriter, r *http.Request) {
 	// Decode the request body into the CreateWorkout struct
-	var decodedBody CreateWorkoutRequest
 
-	err := json.NewDecoder(r.Body).Decode(&decodedBody)
+	body, getBodyErr := util.GetBody(r.Body)
+	if getBodyErr != nil {
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
+
+	var decodedBody CreateWorkoutRequest
+	err := json.Unmarshal(body, &decodedBody)
 	if err != nil {
 		fmt.Println("err:", err)
 		http.Error(w, "Invalid input", http.StatusBadRequest)
