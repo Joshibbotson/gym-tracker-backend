@@ -33,3 +33,6 @@ Thumbs.db            # Windows
 # Go module files (lock files and cached module data)
 go.sum
 go.work.sum
+
+# air tmp file
+/tmp/
