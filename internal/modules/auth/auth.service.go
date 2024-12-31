@@ -6,40 +6,21 @@ import (
 	"fmt"
 	"time"
 
+	t "github.com/joshibbotson/gym-tracker-backend/internal/modules/auth/types"
+
 	"github.com/google/uuid"
-	. "github.com/joshibbotson/gym-tracker-backend/internal/db"
+	db "github.com/joshibbotson/gym-tracker-backend/internal/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// handle business logic for auth
-// register, login, validateToken,
-
-type User struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Name      string             `bson:"name" json:"name"`
-	Email     string             `bson:"email" json:"email"`
-	Password  string             `bson:"password" json:"password"`
-	CreatedAt time.Time          `bson:"createdAt,omitempty" json:"createdAt"`
-	UpdatedAt time.Time          `bson:"updatedAt,omitempty" json:"updatedAt"`
-}
-
-type Session struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty"`
-	UserID    primitive.ObjectID `bson:"user_id,omitempty"`
-	Name      string             `bson:"name"`
-	Email     string             `bson:"email"`
-	SessionID string             `bson:"session_id"`
-	ExpiresAt time.Time          `bson:"expires_at"`
-}
-
 type AuthService interface {
-	GetUserByEmail(email string) (*User, error)
-	CreateUser(name, email, password string) (*User, error)
-	Login(email, password string) (*Session, error)
-	createOrUpdateSession(userID primitive.ObjectID, name string, email string) (Session, error)
+	GetUserByEmail(email string) (*t.User, error)
+	CreateUser(name, email, password string) (*t.User, error)
+	Login(email, password string) (*t.Session, error)
+	createOrUpdateSession(userID primitive.ObjectID, name string, email string) (t.Session, error)
 }
 
 type authService struct{}
@@ -49,8 +30,8 @@ func NewAuthService() AuthService {
 }
 
 // (r *authService) this is a method receiver it's like a class and this is it's method
-func (r *authService) CreateUser(name string, email string, password string) (*User, error) {
-	collection := Client.Database(DB_NAME).Collection("user")
+func (r *authService) CreateUser(name string, email string, password string) (*t.User, error) {
+	collection := db.Client.Database(db.DB_NAME).Collection("user")
 
 	// Check if a user with the email already exists
 	err := collection.FindOne(context.TODO(), bson.M{"email": email}).Err()
@@ -66,7 +47,7 @@ func (r *authService) CreateUser(name string, email string, password string) (*U
 		return nil, err
 	}
 	fmt.Println("Generated hash during user creation:", hashedPassword)
-	user := User{
+	user := t.User{
 		Name:     name,
 		Email:    email,
 		Password: hashedPassword,
@@ -82,15 +63,15 @@ func (r *authService) CreateUser(name string, email string, password string) (*U
 }
 
 // should return a cookie perhaps instead of User?
-func (r *authService) Login(email string, password string) (*Session, error) {
-	collection := Client.Database(DB_NAME).Collection("user")
+func (r *authService) Login(email string, password string) (*t.Session, error) {
+	collection := db.Client.Database(db.DB_NAME).Collection("user")
 
 	// Set a timeout for the database query
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	// Find the user by email
-	var user User
+	var user t.User
 	err := collection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -124,10 +105,10 @@ func (r *authService) VerifyPassword(password, hash string) bool {
 	return err == nil
 }
 
-func (r *authService) GetUserByEmail(email string) (*User, error) {
-	collection := Client.Database(DB_NAME).Collection("user")
+func (r *authService) GetUserByEmail(email string) (*t.User, error) {
+	collection := db.Client.Database(db.DB_NAME).Collection("user")
 
-	var user User
+	var user t.User
 	err := collection.FindOne(context.TODO(), bson.M{"email": email}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -138,12 +119,12 @@ func (r *authService) GetUserByEmail(email string) (*User, error) {
 	return &user, nil
 }
 
-func (*authService) createOrUpdateSession(userID primitive.ObjectID, name string, email string) (Session, error) {
-	sessionCollection := Client.Database(DB_NAME).Collection("session")
+func (*authService) createOrUpdateSession(userID primitive.ObjectID, name string, email string) (t.Session, error) {
+	sessionCollection := db.Client.Database(db.DB_NAME).Collection("session")
 	sessionID := uuid.New().String()
 	expiresAt := time.Now().Add(24 * time.Hour)
 
-	session := Session{
+	session := t.Session{
 		UserID:    userID,
 		Name:      name,
 		Email:     email,
@@ -174,7 +155,7 @@ func (*authService) createOrUpdateSession(userID primitive.ObjectID, name string
 	// if no session available insert one.
 	_, err = sessionCollection.InsertOne(context.TODO(), session)
 	if err != nil {
-		return Session{}, err
+		return t.Session{}, err
 	}
 
 	return session, nil

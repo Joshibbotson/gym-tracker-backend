@@ -7,22 +7,22 @@ import (
 	"time"
 
 	"github.com/joshibbotson/gym-tracker-backend/internal/db"
-	"github.com/joshibbotson/gym-tracker-backend/internal/modules/auth"
+	t "github.com/joshibbotson/gym-tracker-backend/internal/modules/auth/types"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 const DB_NAME = "gym-tracker"
 
-func getUserBySessionId(sessionId string) (auth.Session, error) {
+func getUserBySessionId(sessionId string) (t.Session, error) {
 	sessionCollection := db.Client.Database(DB_NAME).Collection("session")
 
-	var session auth.Session
+	var session t.Session
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	err := sessionCollection.FindOne(ctx, bson.M{"session_id": sessionId}).Decode(&session)
 	if err != nil {
-		return auth.Session{}, fmt.Errorf("failed to fetch session: %v", err)
+		return t.Session{}, fmt.Errorf("failed to fetch session: %v", err)
 	}
 
 	return session, nil

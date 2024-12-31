@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	t "github.com/joshibbotson/gym-tracker-backend/internal/modules/auth/types"
+
 	u "github.com/joshibbotson/gym-tracker-backend/internal/util"
 )
 
@@ -72,13 +74,13 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *AuthHandler) createUser(w http.ResponseWriter, r *http.Request) (*User, error) {
+func (h *AuthHandler) createUser(w http.ResponseWriter, r *http.Request) (*t.User, error) {
 	body, err := u.GetBody(r.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	var user User
+	var user t.User
 	if err := json.Unmarshal(body, &user); err != nil {
 		return nil, err
 	}
@@ -91,7 +93,7 @@ func (h *AuthHandler) createUser(w http.ResponseWriter, r *http.Request) (*User,
 	return createdUser, nil
 }
 
-func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) (*Session, error) {
+func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) (*t.Session, error) {
 	body, err := u.GetBody(r.Body)
 	if err != nil {
 		return nil, err
