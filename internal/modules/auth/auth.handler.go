@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	. "github.com/joshibbotson/gym-tracker-backend/internal/util"
+	u "github.com/joshibbotson/gym-tracker-backend/internal/util"
 )
 
 type AuthHandler struct {
@@ -73,7 +73,7 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) createUser(w http.ResponseWriter, r *http.Request) (*User, error) {
-	body, err := GetBody(r.Body)
+	body, err := u.GetBody(r.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (h *AuthHandler) createUser(w http.ResponseWriter, r *http.Request) (*User,
 }
 
 func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) (*Session, error) {
-	body, err := GetBody(r.Body)
+	body, err := u.GetBody(r.Body)
 	if err != nil {
 		return nil, err
 	}

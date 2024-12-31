@@ -2,7 +2,6 @@ package workout
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	db "github.com/joshibbotson/gym-tracker-backend/internal/db"
@@ -50,7 +49,7 @@ type Workout struct {
 }
 
 type CreateWorkoutRequest struct {
-	Date         string        `bson:"date" json:"date"`
+	Date         time.Time     `bson:"date" json:"date"`
 	Weight       *float64      `json:"weight,omitempty" bson:"weight,omitempty"`
 	WorkoutType  *WorkoutType  `json:"workoutType,omitempty" bson:"workoutType,omitempty"`
 	CaloriePhase *CaloriePhase `json:"caloriePhase,omitempty" bson:"caloriePhase,omitempty"`
@@ -60,10 +59,8 @@ type CreateWorkoutRequest struct {
 	ForearmSize  *float64      `json:"forearmSize,omitempty" bson:"forearmSize,omitempty"`
 	ThighSize    *float64      `json:"thighSize,omitempty" bson:"thighSize,omitempty"`
 	CalfSize     *float64      `json:"calfSize,omitempty" bson:"calfSize,omitempty"`
-	// Workout WorkoutConfig `bson:"workout" json:"workout"`
 }
 
-// handle business logic for workouts
 type WorkoutService interface {
 	createWorkout(workout CreateWorkoutRequest) (*Workout, error)
 }
@@ -76,15 +73,6 @@ func NewWorkoutService() WorkoutService {
 
 func (r *workoutService) createWorkout(workout CreateWorkoutRequest) (*Workout, error) {
 	collection := db.Client.Database(db.DB_NAME).Collection("workout")
-	layout := "2006-01-02"
-
-	// tbh we may want this time from the frontend
-	parsedDate, dateErr := time.Parse(layout, workout.Date)
-	if dateErr != nil {
-		fmt.Println("Error parsing date:", dateErr)
-		return &Workout{}, dateErr
-	}
-
 	Config := WorkoutConfig{
 		Weight:       workout.Weight,
 		WorkoutType:  workout.WorkoutType,
@@ -99,7 +87,7 @@ func (r *workoutService) createWorkout(workout CreateWorkoutRequest) (*Workout, 
 
 	newWorkout := Workout{
 		ID:        primitive.NewObjectID(),
-		Date:      parsedDate,
+		Date:      workout.Date,
 		Workout:   &Config,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
