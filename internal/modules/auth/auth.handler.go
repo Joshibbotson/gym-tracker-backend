@@ -13,7 +13,7 @@ type AuthHandler struct {
 	Service AuthService
 }
 
-func (h *AuthHandler) Handler(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) UserHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
 		user, err := h.createUser(w, r)
@@ -30,7 +30,6 @@ func (h *AuthHandler) Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
-
 	// authenticate the user
 	sessionInfo, err := h.login(w, r)
 	if err != nil {
@@ -93,7 +92,7 @@ func (h *AuthHandler) createUser(w http.ResponseWriter, r *http.Request) (*t.Use
 	return createdUser, nil
 }
 
-func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) (*t.Session, error) {
+func (h *AuthHandler) login(_ http.ResponseWriter, r *http.Request) (*t.Session, error) {
 	body, err := u.GetBody(r.Body)
 	if err != nil {
 		return nil, err

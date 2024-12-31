@@ -21,7 +21,7 @@ func main() {
 	workoutService := workout.NewWorkoutService()
 	workoutHandler := &workout.WorkoutHandler{Service: workoutService}
 
-	http.HandleFunc("/auth", authHandler.Handler)
+	http.HandleFunc("/auth", authHandler.UserHandler)
 	http.HandleFunc("/auth/login", m.HeaderMiddleware(authHandler.LoginHandler))
 	http.HandleFunc("/workout", middlewareChain(workoutHandler.Handler))
 
