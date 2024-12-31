@@ -11,6 +11,8 @@ import (
 
 type WorkoutService interface {
 	createWorkout(workout t.CreateWorkoutRequest) (*t.Workout, error)
+	GetWorkoutsByUserId(userId string) (t.WorkoutData, error)
+	getWorkoutsByDate(userId string, date time.Time) (t.Workout, error)
 }
 
 type workoutService struct{}
@@ -47,4 +49,15 @@ func (r *workoutService) createWorkout(workout t.CreateWorkoutRequest) (*t.Worko
 	}
 
 	return &newWorkout, nil
+}
+
+// need to create an aggregation here to capture workouts data.
+func (r *workoutService) GetWorkoutsByUserId(userId string) (t.WorkoutData, error) {
+
+}
+
+// Should be able to get any workouts related to a date clicked and userId
+// can we retrieve the userID from the decision
+func (r *workoutService) getWorkoutsByDate(userId string, date time.Time) (t.Workout, error) {
+
 }
