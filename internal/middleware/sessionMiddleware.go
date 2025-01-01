@@ -12,6 +12,7 @@ import (
 )
 
 const DB_NAME = "gym-tracker"
+const userIDKey = "userID"
 
 func getUserBySessionId(sessionId string) (t.Session, error) {
 	sessionCollection := db.Client.Database(DB_NAME).Collection("session")
@@ -30,10 +31,8 @@ func getUserBySessionId(sessionId string) (t.Session, error) {
 
 func SessionMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(2)
 
 		// Get the session cookie
-
 		cookie, err := r.Cookie("session_token")
 		if err != nil {
 			fmt.Println("Cookie error:", err)
@@ -42,7 +41,6 @@ func SessionMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		sessionID := cookie.Value
-		fmt.Printf("SessionID: %s\n", sessionID)
 
 		// Validate session using the AuthService
 		session, err := getUserBySessionId(sessionID)
@@ -60,7 +58,7 @@ func SessionMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		// Attach user ID to the context for later use in the request lifecycle
 		fmt.Printf("Session valid for UserID: %s\n", session.UserID)
-		ctx := context.WithValue(r.Context(), "userID", session.UserID)
+		ctx := context.WithValue(r.Context(), userIDKey, session.UserID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }

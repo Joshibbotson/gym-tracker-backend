@@ -2,11 +2,14 @@ package types
 
 import (
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type DailyWorkout struct {
-	Date          time.Time      `json:"date"`
-	WorkoutConfig *WorkoutConfig `json:"workoutConfig,omitempty"`
+	ID     primitive.ObjectID `json:"_id"`
+	Date   time.Time          `json:"date"`
+	Config *WorkoutConfig     `json:"workoutConfig,omitempty"`
 }
 
 type MonthlyData struct {
