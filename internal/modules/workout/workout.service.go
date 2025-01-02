@@ -168,11 +168,10 @@ func fillMissingDates(workoutData []t.YearlyData) []t.YearlyData {
 			for d := firstDay; !d.After(lastDay); d = d.AddDate(0, 0, 1) {
 				dateStr := d.Format("2006-01-02")
 				if existingDates[dateStr] {
-					// Add the existing workout for this date
+					// Add all existing workouts for this date
 					for _, workout := range existingMonths[monthNumber] {
 						if workout.Date.Format("2006-01-02") == dateStr {
 							filledWorkouts = append(filledWorkouts, workout)
-							break
 						}
 					}
 				} else {
