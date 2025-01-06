@@ -12,3 +12,7 @@ Session Cookie: The server sends a session ID to the client, typically as a cook
 Session Validation: For each request, the server checks the session ID in the cookie against the session data it has stored to identify the user.
 
 Err: when a cookie is no longer present we must reset the localstorage on the frontend and prompt a relogin.
+
+TODO
+Add permissions check - []
+Setup protected routing somehow - []

@@ -27,6 +27,10 @@ func (h *WorkoutHandler) Handler(w http.ResponseWriter, r *http.Request) {
 		h.handleCreateWorkout(w, r)
 	case http.MethodGet:
 		h.handleReadActivites(w, r)
+	// case http.MethodPatch:
+	// 	h.handleUpdateWorkout(w, r)
+	case http.MethodDelete:
+		h.handleDeleteWorkout(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -73,20 +77,6 @@ func (h *WorkoutHandler) handleReadActivites(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// body, getBodyErr := util.GetBody(r.Body)
-	// if getBodyErr != nil {
-	// 	http.Error(w, "Invalid input", http.StatusBadRequest)
-	// 	return
-	// }
-
-	// var unmarshalledBody t.CreateWorkoutRequest
-	// err := json.Unmarshal(body, &unmarshalledBody)
-	// if err != nil {
-	// 	fmt.Println("err:", err)
-	// 	http.Error(w, "Invalid input", http.StatusBadRequest)
-	// 	return
-	// }
-
 	workout, err := h.Service.GetWorkoutsByUserId(userID)
 	if err != nil {
 		http.Error(w, "Error creating workout", http.StatusInternalServerError)
@@ -99,4 +89,39 @@ func (h *WorkoutHandler) handleReadActivites(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
 
+}
+
+func (h *WorkoutHandler) handleDeleteWorkout(w http.ResponseWriter, r *http.Request) {
+	println("delete handler hit")
+	_, ok := r.Context().Value("userID").(primitive.ObjectID)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	idParam := r.URL.Query().Get("id")
+	if idParam == "" {
+		http.Error(w, "ID is required", http.StatusBadRequest)
+		return
+	}
+
+	// Convert the ID to ObjectID
+	objectID, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		http.Error(w, "Invalid ID format", http.StatusBadRequest)
+		return
+	}
+
+	success, err := h.Service.DeleteWorkout(objectID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if !success {
+		http.Error(w, "Workout not found", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message": "Workout deleted successfully"}`))
 }

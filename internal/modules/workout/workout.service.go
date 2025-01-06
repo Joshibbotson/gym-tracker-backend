@@ -16,6 +16,7 @@ import (
 type WorkoutService interface {
 	CreateWorkout(userID primitive.ObjectID, workout t.CreateWorkoutRequest) (*t.Workout, error)
 	GetWorkoutsByUserId(userId primitive.ObjectID) ([]t.YearlyData, error)
+	DeleteWorkout(_id primitive.ObjectID) (bool, error)
 	// getWorkoutsByDate(userId string, date time.Time) (t.Workout, error)
 }
 
@@ -195,6 +196,21 @@ func fillMissingDates(workoutData []t.YearlyData) []t.YearlyData {
 	}
 
 	return workoutData
+}
+
+func (r *workoutService) DeleteWorkout(_id primitive.ObjectID) (bool, error) {
+	collection := db.Client.Database(db.DB_NAME).Collection("workout")
+
+	result, err := collection.DeleteOne(context.TODO(), bson.D{{Key: "_id", Value: _id}})
+	if err != nil {
+		return false, err
+	}
+
+	if result.DeletedCount == 0 {
+		return false, fmt.Errorf("no workout found with id: %s", _id.Hex())
+	}
+
+	return true, nil
 }
 
 // Should be able to get any workouts related to a date clicked and userId
