@@ -98,7 +98,7 @@ func (h *WorkoutHandler) handleDeleteWorkout(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-	idParam := r.URL.Query().Get("id")
+	idParam := r.PathValue("id")
 	if idParam == "" {
 		http.Error(w, "ID is required", http.StatusBadRequest)
 		return
