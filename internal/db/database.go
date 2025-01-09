@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,7 +15,11 @@ var Client *mongo.Client
 
 func ConnectDB() {
 	// env variable
-	uri := "mongodb://localhost:27017/gym-tracker"
+	uri := os.Getenv("MONGODB_URI")
+	if uri == "" {
+		log.Fatal("MONGODB_URI environment variable is not set")
+	}
+	// uri := "mongodb://localhost:27017/gym-tracker"
 
 	clientOptions := options.Client().ApplyURI(uri)
 
