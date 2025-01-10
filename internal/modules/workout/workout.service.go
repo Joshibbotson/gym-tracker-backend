@@ -16,6 +16,7 @@ import (
 type WorkoutService interface {
 	CreateWorkout(userID primitive.ObjectID, workout t.CreateWorkoutRequest) (*t.Workout, error)
 	GetWorkoutsByUserId(userId primitive.ObjectID) ([]t.YearlyData, error)
+	UpdateWorkout()
 	DeleteWorkout(_id primitive.ObjectID) (bool, error)
 	// getWorkoutsByDate(userId string, date time.Time) (t.Workout, error)
 }
@@ -58,8 +59,6 @@ func (r *workoutService) CreateWorkout(userID primitive.ObjectID, workout t.Crea
 }
 
 // in the future add a year to get
-// it also doesn't currently get multiple workouts on the same day.
-// we need to include the ID
 func (r *workoutService) GetWorkoutsByUserId(userId primitive.ObjectID) ([]t.YearlyData, error) {
 	collection := db.Client.Database(db.DB_NAME).Collection("workout")
 
@@ -132,11 +131,22 @@ func (r *workoutService) GetWorkoutsByUserId(userId primitive.ObjectID) ([]t.Yea
 		return nil, fmt.Errorf("decoding error: %v", err)
 	}
 
+	if len(results) == 0 {
+		// []t.YearlyData{} instantiates an empty slice of type t.YearlyData
+		return fillMissingDates([]t.YearlyData{}), nil
+	}
+
 	return fillMissingDates(results), nil
 }
 
 func fillMissingDates(workoutData []t.YearlyData) []t.YearlyData {
 	location := time.UTC
+
+	if len(workoutData) == 0 {
+		year := time.Now().Year()
+		// Initialize a new YearlyData with all months and days for the year
+		workoutData = []t.YearlyData{{Year: year, Months: []t.MonthlyData{}}}
+	}
 
 	for i, year := range workoutData {
 		yearInt := year.Year
