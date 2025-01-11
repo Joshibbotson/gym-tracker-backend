@@ -34,6 +34,10 @@ func main() {
 	http.HandleFunc("/auth/login", m.HeaderMiddleware(authHandler.LoginHandler))
 	http.HandleFunc("/workout", middlewareChain(workoutHandler.Handler))
 	http.HandleFunc("/workout/{id}", middlewareChain(workoutHandler.Handler))
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
 
 	// put in env variable.
 	if err := http.ListenAndServe("0.0.0.0:"+port, nil); err != nil {
