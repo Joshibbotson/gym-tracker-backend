@@ -36,7 +36,10 @@ func main() {
 	http.HandleFunc("/workout/{id}", middlewareChain(workoutHandler.Handler))
 
 	// put in env variable.
-	http.ListenAndServe("0.0.0.0:"+port, nil)
-	println("listening on port:", port)
+	if err := http.ListenAndServe("0.0.0.0:"+port, nil); err != nil {
+		log.Fatal("Server failed to start: ", err)
+	} else {
+		println("port:", port)
+	}
 
 }
