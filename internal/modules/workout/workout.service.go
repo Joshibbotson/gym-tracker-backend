@@ -71,14 +71,14 @@ func (r *workoutService) UpdateWorkout(userID primitive.ObjectID, workout t.Upda
 		ThighSize:    workout.ThighSize,
 		CalfSize:     workout.CalfSize,
 	}
-	println("Config:", Config)
+	// println("Config:", Config)
 	updatedWorkout := t.Workout{
 		ID:      workout.ID,
 		UserId:  workout.UserId,
 		Workout: &Config,
 	}
 
-	println("updatedWorkout:", updatedWorkout)
+	// println("updatedWorkout:", updatedWorkout)
 
 	_, err := collection.UpdateByID(context.TODO(), workout.ID, updatedWorkout)
 	if err != nil {
