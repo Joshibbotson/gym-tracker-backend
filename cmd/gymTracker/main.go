@@ -34,6 +34,6 @@ func main() {
 	http.HandleFunc("/workout/{id}", middlewareChain(workoutHandler.Handler))
 
 	// put in env variable.
-	http.ListenAndServe(":"+port, nil)
+	http.ListenAndServe("0.0.0.0:"+port, nil)
 
 }
