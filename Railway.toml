@@ -1,4 +1,0 @@
-[build]
-builder = "nixpacks"
-build_command = "cd ./cmd/gymTracker && go build -o /app/main"
-start_command = "/app/main"
