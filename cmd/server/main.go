@@ -12,11 +12,13 @@ import (
 )
 
 func main() {
+	println("initting main")
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatal("PORT environment variable is not set")
 	}
+	println("port:", port)
 
 	db.ConnectDB()
 	defer db.DisconnectDB()
