@@ -1,7 +1,9 @@
 package main
 
 import (
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/joshibbotson/gym-tracker-backend/internal/db"
 	m "github.com/joshibbotson/gym-tracker-backend/internal/middleware"
@@ -10,6 +12,11 @@ import (
 )
 
 func main() {
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("PORT environment variable is not set")
+	}
 
 	db.ConnectDB()
 	defer db.DisconnectDB()
@@ -27,6 +34,6 @@ func main() {
 	http.HandleFunc("/workout/{id}", middlewareChain(workoutHandler.Handler))
 
 	// put in env variable.
-	http.ListenAndServe(":8888", nil)
+	http.ListenAndServe(":"+port, nil)
 
 }
