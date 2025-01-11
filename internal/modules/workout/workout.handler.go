@@ -27,8 +27,8 @@ func (h *WorkoutHandler) Handler(w http.ResponseWriter, r *http.Request) {
 		h.handleCreateWorkout(w, r)
 	case http.MethodGet:
 		h.handleReadActivites(w, r)
-	// case http.MethodPatch:
-	// 	h.handleUpdateWorkout(w, r)
+	case http.MethodPatch:
+		h.handleUpdateWorkout(w, r)
 	case http.MethodDelete:
 		h.handleDeleteWorkout(w, r)
 	default:
@@ -89,6 +89,41 @@ func (h *WorkoutHandler) handleReadActivites(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
 
+}
+
+func (h *WorkoutHandler) handleUpdateWorkout(w http.ResponseWriter, r *http.Request) {
+	println("update handler hit")
+	userID, ok := r.Context().Value("userID").(primitive.ObjectID)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	body, getBodyErr := util.GetBody(r.Body)
+	if getBodyErr != nil {
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
+
+	var unmarshalledBody t.UpdateWorkoutRequest
+	err := json.Unmarshal(body, &unmarshalledBody)
+	if err != nil {
+		fmt.Println("err:", err)
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
+
+	workout, err := h.Service.UpdateWorkout(userID, unmarshalledBody)
+	if err != nil {
+		http.Error(w, "Error updating workout", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(workout); err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	}
 }
 
 func (h *WorkoutHandler) handleDeleteWorkout(w http.ResponseWriter, r *http.Request) {

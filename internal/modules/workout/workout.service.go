@@ -16,7 +16,7 @@ import (
 type WorkoutService interface {
 	CreateWorkout(userID primitive.ObjectID, workout t.CreateWorkoutRequest) (*t.Workout, error)
 	GetWorkoutsByUserId(userId primitive.ObjectID) ([]t.YearlyData, error)
-	UpdateWorkout()
+	UpdateWorkout(userID primitive.ObjectID, workout t.UpdateWorkoutRequest) (*t.Workout, error)
 	DeleteWorkout(_id primitive.ObjectID) (bool, error)
 	// getWorkoutsByDate(userId string, date time.Time) (t.Workout, error)
 }
@@ -56,6 +56,37 @@ func (r *workoutService) CreateWorkout(userID primitive.ObjectID, workout t.Crea
 	}
 
 	return &newWorkout, nil
+}
+
+func (r *workoutService) UpdateWorkout(userID primitive.ObjectID, workout t.UpdateWorkoutRequest) (*t.Workout, error) {
+	collection := db.Client.Database(db.DB_NAME).Collection("workout")
+	Config := t.WorkoutConfig{
+		Weight:       workout.Weight,
+		WorkoutType:  workout.WorkoutType,
+		CaloriePhase: workout.CaloriePhase,
+		ChestSize:    workout.ChestSize,
+		WaistSize:    workout.WaistSize,
+		BicepSize:    workout.BicepSize,
+		ForearmSize:  workout.ForearmSize,
+		ThighSize:    workout.ThighSize,
+		CalfSize:     workout.CalfSize,
+	}
+	println("Config:", Config)
+	updatedWorkout := t.Workout{
+		ID:      workout.ID,
+		UserId:  workout.UserId,
+		Workout: &Config,
+	}
+
+	println("updatedWorkout:", updatedWorkout)
+
+	_, err := collection.UpdateByID(context.TODO(), workout.ID, updatedWorkout)
+	if err != nil {
+		return nil, err
+	}
+	println("return ")
+
+	return &updatedWorkout, nil
 }
 
 // in the future add a year to get
