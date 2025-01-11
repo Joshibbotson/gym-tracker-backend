@@ -3,6 +3,7 @@ package auth
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 
 	t "github.com/joshibbotson/gym-tracker-backend/internal/modules/auth/types"
 
@@ -36,27 +37,29 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	env := os.Getenv("GO_ENV")
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     "session_token",
-		Value:    sessionInfo.SessionID,
-		Expires:  sessionInfo.ExpiresAt,
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
-	})
-
-	// for production
-	// 	http.SetCookie(w, &http.Cookie{
-	//     Name:     "session_token",
-	//     Value:    sessionInfo.SessionID,
-	//     Expires:  sessionInfo.ExpiresAt,
-	//     Path:     "/",
-	//     HttpOnly: true,
-	//     Secure:   true,
-	//     SameSite: http.SameSiteNoneMode,
-	// })
+	if env == "production" {
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_token",
+			Value:    sessionInfo.SessionID,
+			Expires:  sessionInfo.ExpiresAt,
+			Path:     "/",
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteNoneMode,
+		})
+	} else {
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_token",
+			Value:    sessionInfo.SessionID,
+			Expires:  sessionInfo.ExpiresAt,
+			Path:     "/",
+			HttpOnly: true,
+			Secure:   false,
+			SameSite: http.SameSiteLaxMode,
+		})
+	}
 
 	w.WriteHeader(http.StatusOK)
 
