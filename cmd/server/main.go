@@ -35,5 +35,6 @@ func main() {
 
 	// put in env variable.
 	http.ListenAndServe("0.0.0.0:"+port, nil)
+	println("listening on port:", port)
 
 }
