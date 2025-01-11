@@ -16,7 +16,7 @@ func HeaderMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		var allowedOrigin string
 		if env == "production" {
 			// In production, replace this with your frontend's HTTPS URL
-			allowedOrigin = "https://your-frontend-url.com" // Replace with actual HTTPS frontend URL
+			allowedOrigin = "https://gym-commits.netlify.app" // Replace with actual HTTPS frontend URL
 		} else {
 			// For local development, allow the local IP address with HTTP or HTTPS
 			allowedOrigin = "http://localhost:4200, http://5.133.46.201:4200"
