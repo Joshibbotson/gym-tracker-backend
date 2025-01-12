@@ -52,7 +52,7 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			Domain:   "gym-tracker.joshibbotson.com",
 			HttpOnly: true,
 			Secure:   true,
-			SameSite: http.SameSiteStrictMode,
+			SameSite: http.SameSiteLaxMode,
 		})
 	} else {
 		http.SetCookie(w, &http.Cookie{
