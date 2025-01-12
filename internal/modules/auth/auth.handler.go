@@ -49,7 +49,6 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			Value:    sessionInfo.SessionID,
 			Expires:  sessionInfo.ExpiresAt,
 			Path:     "/",
-			Domain:   "gym-tracker.joshibbotson.com",
 			HttpOnly: true,
 			Secure:   true,
 			SameSite: http.SameSiteLaxMode,
