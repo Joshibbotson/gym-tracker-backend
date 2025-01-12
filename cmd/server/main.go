@@ -38,12 +38,8 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
-
+	println("HandlerFuncs initted")
 	// put in env variable.
-	if err := http.ListenAndServe("0.0.0.0:"+port, nil); err != nil {
-		log.Fatal("Server failed to start: ", err)
-	} else {
-		println("port:", port)
-	}
+	http.ListenAndServe("0.0.0.0:"+port, nil)
 
 }
