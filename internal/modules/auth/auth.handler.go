@@ -14,6 +14,10 @@ type AuthHandler struct {
 	Service AuthService
 }
 
+/*
+* Need  a better setup for auth, this is messy, login and user creation should all just belong to auth
+to simplify things.
+*/
 func (h *AuthHandler) UserHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:

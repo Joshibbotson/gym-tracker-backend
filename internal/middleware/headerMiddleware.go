@@ -15,7 +15,7 @@ func HeaderMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		// Set allowed origins based on the environment
 		var allowedOrigins []string
 		if env == "production" {
-			allowedOrigins = []string{"https://gym-commits.netlify.app"}
+			allowedOrigins = []string{"https://gym-tracker.joshibbotson.com"}
 		} else {
 			allowedOrigins = []string{"http://localhost:4200", "http://5.133.46.201:4200"}
 		}
