@@ -32,6 +32,7 @@ func main() {
 
 	http.HandleFunc("/auth", authHandler.UserHandler)
 	http.HandleFunc("/auth/login", m.HeaderMiddleware(authHandler.LoginHandler))
+	http.HandleFunc("/auth/google/login", m.HeaderMiddleware((authHandler.LoginHandler)))
 	http.HandleFunc("/workout", middlewareChain(workoutHandler.Handler))
 	http.HandleFunc("/workout/{id}", middlewareChain(workoutHandler.Handler))
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
