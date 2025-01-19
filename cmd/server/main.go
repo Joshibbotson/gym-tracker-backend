@@ -32,14 +32,14 @@ func main() {
 
 	http.HandleFunc("/auth", authHandler.UserHandler)
 	http.HandleFunc("/auth/login", m.HeaderMiddleware(authHandler.LoginHandler))
-	http.HandleFunc("/auth/google/login", m.HeaderMiddleware((authHandler.LoginHandler)))
+	http.HandleFunc("/auth/google/login", m.HeaderMiddleware((authHandler.HandleGoogleLogin)))
+	http.HandleFunc("/auth/google/callback", m.HeaderMiddleware((authHandler.HandleOAuth2Callback)))
 	http.HandleFunc("/workout", middlewareChain(workoutHandler.Handler))
 	http.HandleFunc("/workout/{id}", middlewareChain(workoutHandler.Handler))
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
-	println("HandlerFuncs initted")
 	// put in env variable.
 	http.ListenAndServe("0.0.0.0:"+port, nil)
 
