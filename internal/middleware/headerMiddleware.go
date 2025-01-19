@@ -16,6 +16,8 @@ func HeaderMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		var allowedOrigins []string
 		if env == "production" {
 			allowedOrigins = []string{"https://gym-tracker.joshibbotson.com"}
+		} else if env == "staging" {
+			allowedOrigins = []string{"https://gym-tracker-staging.joshibbotson.com"}
 		} else {
 			allowedOrigins = []string{"http://localhost:4200", "http://5.133.46.201:4200"}
 		}
