@@ -17,8 +17,10 @@ import (
 )
 
 type AuthService interface {
+	LoginOrCreateUser(config t.AuthData) (*t.Session, error)
 	GetUserByEmail(email string) (*t.User, error)
-	CreateUser(name, email, password string) (*t.User, error)
+	CreateLocalUser(name, email, password string) (*t.User, error)
+	CreateOAuthUser(authData t.AuthData) (*t.User, error)
 	Login(email, password string) (*t.Session, error)
 	createOrUpdateSession(userID primitive.ObjectID, name string, email string) (t.Session, error)
 }
@@ -29,12 +31,37 @@ func NewAuthService() AuthService {
 	return &authService{}
 }
 
+func (r *authService) LoginOrCreateUser(config t.AuthData) (*t.Session, error) {
+
+	// attempt to retrieve the user by email
+	user, _ := r.GetUserByEmail(config.Email)
+	if user != nil {
+		session, _ := r.createOrUpdateSession(user.ID, user.Name, user.Email)
+		if &session != nil {
+			return &session, nil
+		}
+		return nil, fmt.Errorf("failed to create or update session for existing user")
+	}
+
+	// If the user doesn't exist, create a new OAuth user
+	user, _ = r.CreateOAuthUser(config)
+	if user != nil {
+		session, _ := r.createOrUpdateSession(user.ID, user.Name, user.Email)
+		if &session != nil {
+			return &session, nil
+		}
+		return nil, fmt.Errorf("failed to create or update session for new user")
+	}
+
+	return nil, fmt.Errorf("failed to login or create user")
+}
+
 // (r *authService) this is a method receiver it's like a class and this is it's method
-func (r *authService) CreateUser(name string, email string, password string) (*t.User, error) {
-	collection := db.Client.Database(db.DB_NAME).Collection("user")
+func (r *authService) CreateLocalUser(name string, email string, password string) (*t.User, error) {
+	userCollection := db.Client.Database(db.DB_NAME).Collection("user")
 
 	// Check if a user with the email already exists
-	err := collection.FindOne(context.TODO(), bson.M{"email": email}).Err()
+	err := userCollection.FindOne(context.TODO(), bson.M{"email": email}).Err()
 	if err != nil && err != mongo.ErrNoDocuments {
 		return nil, err
 	}
@@ -53,7 +80,39 @@ func (r *authService) CreateUser(name string, email string, password string) (*t
 		Password: hashedPassword,
 	}
 
-	result, err := collection.InsertOne(context.TODO(), user)
+	result, err := userCollection.InsertOne(context.TODO(), user)
+	if err != nil {
+		return nil, err
+	}
+
+	user.ID = result.InsertedID.(primitive.ObjectID)
+	return &user, nil
+}
+
+func (r *authService) CreateOAuthUser(authData t.AuthData) (*t.User, error) {
+	userCollection := db.Client.Database(db.DB_NAME).Collection("user")
+
+	// Check if a user with the email already exists
+	err := userCollection.FindOne(context.TODO(), bson.M{"email": authData.Email}).Err()
+	if err != nil && err != mongo.ErrNoDocuments {
+		return nil, err
+	}
+	if err == nil {
+		return nil, errors.New("user with this email already exists")
+	}
+
+	user := t.User{
+		Name:          authData.Name,
+		Email:         authData.Email,
+		Surname:       authData.Surname,
+		FirstName:     authData.FirstName,
+		AuthId:        authData.AuthId,
+		PictureUrl:    authData.PictureUrl,
+		VerifiedEmail: authData.VerifiedEmail,
+		AuthProvider:  authData.AuthProvider,
+	}
+
+	result, err := userCollection.InsertOne(context.TODO(), user)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +123,7 @@ func (r *authService) CreateUser(name string, email string, password string) (*t
 
 // should return a cookie perhaps instead of User?
 func (r *authService) Login(email string, password string) (*t.Session, error) {
-	collection := db.Client.Database(db.DB_NAME).Collection("user")
+	userCollection := db.Client.Database(db.DB_NAME).Collection("user")
 
 	// Set a timeout for the database query
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -72,7 +131,7 @@ func (r *authService) Login(email string, password string) (*t.Session, error) {
 
 	// Find the user by email
 	var user t.User
-	err := collection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
+	err := userCollection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			fmt.Println("No user found for email:", email) // Debugging
@@ -106,10 +165,10 @@ func (r *authService) VerifyPassword(password, hash string) bool {
 }
 
 func (r *authService) GetUserByEmail(email string) (*t.User, error) {
-	collection := db.Client.Database(db.DB_NAME).Collection("user")
+	userCollection := db.Client.Database(db.DB_NAME).Collection("user")
 
 	var user t.User
-	err := collection.FindOne(context.TODO(), bson.M{"email": email}).Decode(&user)
+	err := userCollection.FindOne(context.TODO(), bson.M{"email": email}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
