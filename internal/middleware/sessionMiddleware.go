@@ -57,7 +57,6 @@ func SessionMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		// Attach user ID to the context for later use in the request lifecycle
-		fmt.Printf("Session valid for UserID: %s\n", session.UserID)
 		ctx := context.WithValue(r.Context(), userIDKey, session.UserID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}

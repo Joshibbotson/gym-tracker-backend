@@ -71,6 +71,10 @@ to simplify things.
 // 	}
 // }
 
+func (h *AuthHandler) HandleUserDetails(w http.ResponseWriter, r *http.Request) {
+
+}
+
 // handleGoogleLogin redirects the user to Google's OAuth 2.0 server
 func (h *AuthHandler) HandleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 	url := googleOauthConfig.AuthCodeURL("random_state_string", oauth2.AccessTypeOffline)
@@ -134,7 +138,6 @@ func (h *AuthHandler) HandleOAuth2Callback(w http.ResponseWriter, r *http.Reques
 
 	// Redirect before any body content is written
 	redirectURL := fmt.Sprintf(REDIRECT_URL+"/redirect-auth/?name=%s&email=%s", sessionInfo.Name, sessionInfo.Email)
-	fmt.Println("redirecUrl:", redirectURL)
 	// Perform the redirect to the frontend
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }

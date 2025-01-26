@@ -6,30 +6,28 @@ import (
 	"strconv"
 	"time"
 
-	db "github.com/joshibbotson/gym-tracker-backend/internal/db"
 	t "github.com/joshibbotson/gym-tracker-backend/internal/modules/workout/types"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type WorkoutService interface {
 	CreateWorkout(userID primitive.ObjectID, workout t.CreateWorkoutRequest) (*t.Workout, error)
-	GetWorkoutsByUserId(userId primitive.ObjectID) ([]t.YearlyData, error)
-	UpdateWorkout(userID primitive.ObjectID, workout t.UpdateWorkoutRequest) (*t.Workout, error)
-	DeleteWorkout(_id primitive.ObjectID) (bool, error)
-	// getWorkoutsByDate(userId string, date time.Time) (t.Workout, error)
+	GetWorkoutsByUserId(userID primitive.ObjectID) ([]t.YearlyData, error)
+	GetWorkoutsByDate(userID primitive.ObjectID, date time.Time) ([]t.Workout, error)
+	UpdateWorkout(userID primitive.ObjectID, workout t.UpdateWorkoutRequest) ([]t.Workout, error)
+	DeleteWorkout(workoutID primitive.ObjectID) (bool, error)
 }
 
-type workoutService struct{}
-
-func NewWorkoutService() WorkoutService {
-	return &workoutService{}
+type workoutService struct {
+	repo WorkoutRepository
 }
 
-func (r *workoutService) CreateWorkout(userID primitive.ObjectID, workout t.CreateWorkoutRequest) (*t.Workout, error) {
-	collection := db.Client.Database(db.DB_NAME).Collection("workout")
-	Config := t.WorkoutConfig{
+func NewWorkoutService(repo WorkoutRepository) WorkoutService {
+	return &workoutService{repo: repo}
+}
+
+func (s *workoutService) CreateWorkout(userID primitive.ObjectID, workout t.CreateWorkoutRequest) (*t.Workout, error) {
+	config := t.WorkoutConfig{
 		Weight:       workout.Weight,
 		WorkoutType:  workout.WorkoutType,
 		CaloriePhase: workout.CaloriePhase,
@@ -45,129 +43,26 @@ func (r *workoutService) CreateWorkout(userID primitive.ObjectID, workout t.Crea
 		ID:        primitive.NewObjectID(),
 		UserId:    userID,
 		Date:      workout.Date,
-		Workout:   &Config,
+		Workout:   &config,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
 
-	_, err := collection.InsertOne(context.TODO(), newWorkout)
+	return s.repo.InsertWorkout(context.TODO(), newWorkout)
+}
+
+func (s *workoutService) GetWorkoutsByDate(userId primitive.ObjectID, date time.Time) ([]t.Workout, error) {
+	return s.repo.FetchWorkoutByDate(context.TODO(), userId, date)
+
+}
+
+func (s *workoutService) GetWorkoutsByUserId(userID primitive.ObjectID) ([]t.YearlyData, error) {
+	workouts, err := s.repo.FetchWorkoutsByUserId(context.TODO(), userID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &newWorkout, nil
-}
-
-func (r *workoutService) UpdateWorkout(userID primitive.ObjectID, workout t.UpdateWorkoutRequest) (*t.Workout, error) {
-	collection := db.Client.Database(db.DB_NAME).Collection("workout")
-	Config := t.WorkoutConfig{
-		Weight:       workout.Weight,
-		WorkoutType:  workout.WorkoutType,
-		CaloriePhase: workout.CaloriePhase,
-		ChestSize:    workout.ChestSize,
-		WaistSize:    workout.WaistSize,
-		BicepSize:    workout.BicepSize,
-		ForearmSize:  workout.ForearmSize,
-		ThighSize:    workout.ThighSize,
-		CalfSize:     workout.CalfSize,
-	}
-	// println("Config:", Config)
-	updatedWorkout := t.Workout{
-		ID:      workout.ID,
-		UserId:  workout.UserId,
-		Workout: &Config,
-	}
-
-	// println("updatedWorkout:", updatedWorkout)
-
-	_, err := collection.UpdateByID(context.TODO(), workout.ID, updatedWorkout)
-	if err != nil {
-		return nil, err
-	}
-	println("return ")
-
-	return &updatedWorkout, nil
-}
-
-// in the future add a year to get
-func (r *workoutService) GetWorkoutsByUserId(userId primitive.ObjectID) ([]t.YearlyData, error) {
-	collection := db.Client.Database(db.DB_NAME).Collection("workout")
-
-	startOfYear := time.Date(time.Now().Year(), time.January, 1, 0, 0, 0, 0, time.UTC)
-	endOfYear := time.Date(time.Now().Year(), time.December, 31, 23, 59, 59, 999999999, time.UTC)
-
-	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: bson.D{
-			{Key: "userId", Value: userId},
-			{Key: "date", Value: bson.D{
-				{Key: "$gte", Value: startOfYear},
-				{Key: "$lte", Value: endOfYear},
-			}},
-		}}},
-		{{Key: "$addFields", Value: bson.D{
-			{Key: "ID", Value: "$_id"},
-		}}},
-		{{Key: "$project", Value: bson.D{
-			{Key: "year", Value: bson.D{{Key: "$year", Value: "$date"}}},
-			{Key: "month", Value: bson.D{{Key: "$month", Value: "$date"}}},
-			{Key: "day", Value: bson.D{{Key: "$dayOfMonth", Value: "$date"}}},
-			{Key: "date", Value: "$date"},
-			{Key: "config", Value: `$workout`},
-			{Key: "ID", Value: 1},
-		}}},
-		{{Key: "$group", Value: bson.D{
-			{Key: "_id", Value: bson.D{{Key: "year", Value: "$year"}, {Key: "month", Value: "$month"}}},
-			{Key: "workouts", Value: bson.D{{Key: "$push", Value: bson.D{
-				{Key: "ID", Value: "$ID"},
-				{Key: "date", Value: "$date"},
-				{Key: "config", Value: "$config"},
-			}}}},
-		}}},
-		{{Key: "$group", Value: bson.D{
-			{Key: "_id", Value: "$_id.year"},
-			{Key: "months", Value: bson.D{{Key: "$push", Value: bson.D{
-				{Key: "month", Value: "$_id.month"},
-				{Key: "workouts", Value: "$workouts"},
-			}}}},
-		}}},
-		{{Key: "$sort", Value: bson.D{
-			{Key: "_id", Value: 1},
-			{Key: "months.month", Value: 1},
-		}}},
-		{{Key: "$project", Value: bson.D{
-			{Key: "_id", Value: 0},
-			{Key: "year", Value: `$_id`},
-			{Key: "months", Value: bson.D{{Key: "$map", Value: bson.D{
-				{Key: "input", Value: "$months"},
-				{Key: "as", Value: "month"},
-				{Key: "in", Value: bson.D{
-					{Key: "ID", Value: "$ID"},
-					{Key: "month", Value: bson.D{{Key: "$toString", Value: "$$month.month"}}},
-					{Key: "workouts", Value: `$$month.workouts`},
-				}},
-			}}}},
-		}}},
-	}
-
-	// Execute the aggregation pipeline
-	cursor, err := collection.Aggregate(context.TODO(), pipeline)
-	if err != nil {
-		return nil, fmt.Errorf("aggregation error: %v", err)
-	}
-	defer cursor.Close(context.TODO())
-
-	// Decode the results into a slice of YearlyData
-	var results []t.YearlyData
-	if err := cursor.All(context.TODO(), &results); err != nil {
-		return nil, fmt.Errorf("decoding error: %v", err)
-	}
-
-	if len(results) == 0 {
-		// []t.YearlyData{} instantiates an empty slice of type t.YearlyData
-		return fillMissingDates([]t.YearlyData{}), nil
-	}
-
-	return fillMissingDates(results), nil
+	return fillMissingDates(workouts), nil
 }
 
 func fillMissingDates(workoutData []t.YearlyData) []t.YearlyData {
@@ -239,23 +134,35 @@ func fillMissingDates(workoutData []t.YearlyData) []t.YearlyData {
 	return workoutData
 }
 
-func (r *workoutService) DeleteWorkout(_id primitive.ObjectID) (bool, error) {
-	collection := db.Client.Database(db.DB_NAME).Collection("workout")
+func (s *workoutService) UpdateWorkout(userID primitive.ObjectID, workout t.UpdateWorkoutRequest) ([]t.Workout, error) {
+	config := t.WorkoutConfig{
+		Weight:       workout.Weight,
+		WorkoutType:  workout.WorkoutType,
+		CaloriePhase: workout.CaloriePhase,
+		ChestSize:    workout.ChestSize,
+		WaistSize:    workout.WaistSize,
+		BicepSize:    workout.BicepSize,
+		ForearmSize:  workout.ForearmSize,
+		ThighSize:    workout.ThighSize,
+		CalfSize:     workout.CalfSize,
+	}
 
-	result, err := collection.DeleteOne(context.TODO(), bson.D{{Key: "_id", Value: _id}})
+	updatedWorkout := t.Workout{
+		ID:      workout.ID,
+		Date:    workout.Date,
+		UserId:  userID,
+		Workout: &config,
+	}
+
+	data, err := s.repo.UpdateWorkout(context.TODO(), updatedWorkout)
 	if err != nil {
-		return false, err
+		fmt.Println("error updating!")
+		// probably should return the workouts by date here instead of nil? Or maybe not tbf
+		return nil, err
 	}
-
-	if result.DeletedCount == 0 {
-		return false, fmt.Errorf("no workout found with id: %s", _id.Hex())
-	}
-
-	return true, nil
+	return s.repo.FetchWorkoutByDate(context.TODO(), userID, data.Date)
 }
 
-// Should be able to get any workouts related to a date clicked and userId
-// can we retrieve the userID from the session and add it to context?
-// func (r *workoutService) getWorkoutsByDate(userId string, date time.Time) (t.Workout, error) {
-
-// }
+func (s *workoutService) DeleteWorkout(workoutID primitive.ObjectID) (bool, error) {
+	return s.repo.RemoveWorkout(context.TODO(), workoutID)
+}
