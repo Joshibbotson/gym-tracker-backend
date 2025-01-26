@@ -22,17 +22,17 @@ type WorkoutRepository interface {
 }
 
 type workoutRepository struct {
-	authCollection *mongo.Collection
+	workoutCollection *mongo.Collection
 }
 
 func NewWorkoutRepository() WorkoutRepository {
 	return &workoutRepository{
-		authCollection: db.Client.Database(db.DB_NAME).Collection("user"),
+		workoutCollection: db.Client.Database(db.DB_NAME).Collection("workout"),
 	}
 }
 
 func (r *workoutRepository) InsertWorkout(ctx context.Context, workout t.Workout) (*t.Workout, error) {
-	_, err := r.authCollection.InsertOne(ctx, workout)
+	_, err := r.workoutCollection.InsertOne(ctx, workout)
 	if err != nil {
 		return nil, err
 	}
@@ -53,12 +53,11 @@ func (r *workoutRepository) FetchWorkoutByDate(ctx context.Context, userId primi
 		},
 	}
 
-	fmt.Println("filter:", filter)
 	// Query the database
 	var workouts []t.Workout
 	// returns a cursor to iterate through results
 	// if error with filter returns error
-	cursor, err := r.authCollection.Find(ctx, filter)
+	cursor, err := r.workoutCollection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +131,7 @@ func (r *workoutRepository) FetchWorkoutsByUserId(ctx context.Context, userID pr
 		}}},
 	}
 
-	cursor, err := r.authCollection.Aggregate(ctx, pipeline)
+	cursor, err := r.workoutCollection.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, fmt.Errorf("aggregation error: %v", err)
 	}
@@ -147,7 +146,7 @@ func (r *workoutRepository) FetchWorkoutsByUserId(ctx context.Context, userID pr
 }
 
 func (r *workoutRepository) UpdateWorkout(ctx context.Context, workout t.Workout) (*t.Workout, error) {
-	_, err := r.authCollection.UpdateByID(ctx, workout.ID, bson.M{"$set": workout})
+	_, err := r.workoutCollection.UpdateByID(ctx, workout.ID, bson.M{"$set": workout})
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +154,7 @@ func (r *workoutRepository) UpdateWorkout(ctx context.Context, workout t.Workout
 }
 
 func (r *workoutRepository) RemoveWorkout(ctx context.Context, workoutID primitive.ObjectID) (bool, error) {
-	res, err := r.authCollection.DeleteOne(ctx, bson.M{"_id": workoutID})
+	res, err := r.workoutCollection.DeleteOne(ctx, bson.M{"_id": workoutID})
 	if err != nil {
 		return false, err
 	}
