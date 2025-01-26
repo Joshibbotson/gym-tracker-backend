@@ -37,4 +37,5 @@ go.work.sum
 # air tmp file
 /tmp/
 
+# dev script
 setVariables.sh

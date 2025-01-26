@@ -24,21 +24,26 @@ func main() {
 	defer db.DisconnectDB()
 	middlewareChain := m.MiddlewareChain(m.HeaderMiddleware, m.SessionMiddleware)
 
-	authService := auth.NewAuthService()
+	authRepository := auth.NewAuthRepository()
+	authService := auth.NewAuthService(authRepository)
 	authHandler := &auth.AuthHandler{Service: authService}
 
-	workoutService := workout.NewWorkoutService()
+	workoutRepository := workout.NewWorkoutRepository()
+	workoutService := workout.NewWorkoutService(workoutRepository)
 	workoutHandler := &workout.WorkoutHandler{Service: workoutService}
 
-	http.HandleFunc("/auth", authHandler.UserHandler)
-	http.HandleFunc("/auth/login", m.HeaderMiddleware(authHandler.LoginHandler))
+	// http.HandleFunc("/auth", authHandler.UserHandler)
+	// http.HandleFunc("/auth/login", m.HeaderMiddleware(authHandler.LoginHandler))
+	http.HandleFunc("/auth/google/login", m.HeaderMiddleware((authHandler.HandleGoogleLogin)))
+	http.HandleFunc("/auth/google/callback", m.HeaderMiddleware((authHandler.HandleOAuth2Callback)))
+	http.HandleFunc("/auth/logout", middlewareChain((authHandler.Logout)))
 	http.HandleFunc("/workout", middlewareChain(workoutHandler.Handler))
-	http.HandleFunc("/workout/{id}", middlewareChain(workoutHandler.Handler))
+	http.HandleFunc("/workout/delete/{id}", middlewareChain(workoutHandler.Handler))
+	http.HandleFunc("/workout/{date}", middlewareChain(workoutHandler.Handler))
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
-	println("HandlerFuncs initted")
 	// put in env variable.
 	http.ListenAndServe("0.0.0.0:"+port, nil)
 

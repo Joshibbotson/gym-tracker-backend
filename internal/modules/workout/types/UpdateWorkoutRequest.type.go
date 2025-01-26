@@ -8,8 +8,8 @@ import (
 )
 
 type UpdateWorkoutRequest struct {
-	ID           primitive.ObjectID `bson:"_id" json:"id"`
-	UserId       primitive.ObjectID `bson:"userId" json:"userId"`
+	ID           primitive.ObjectID `bson:"_id" json:"_id"`
+	UserId       primitive.ObjectID `bson:"userID" json:"userID"`
 	Date         time.Time          `bson:"date" json:"date"`
 	Weight       *float64           `json:"weight,omitempty" bson:"weight,omitempty"`
 	WorkoutType  *c.WorkoutType     `json:"workoutType,omitempty" bson:"workoutType,omitempty"`

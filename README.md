@@ -1,9 +1,9 @@
-handler: HTTP Handlers
-Service: Core business logic
-Repository: Data access layer
+Backend for Gym tracker.
 
-TODO
-Add permissions check - []
-Setup protected routing somehow - []
-Fix session issue - []
-Set stricter passsword protection - []
+userSettings schema = {
+activeDayColour:string
+inactiveDayColour:string
+todayHighlightColour:string
+showDays: boolean
+dayBorderRadius: number
+}
