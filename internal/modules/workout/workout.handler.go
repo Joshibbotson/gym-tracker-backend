@@ -28,6 +28,12 @@ func (h *WorkoutHandler) Handler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		m.PermissionMiddleware(h.handleCreateWorkout)(w, r)
 	case http.MethodGet:
+		path := r.URL.Path
+
+		if path == "/workout/count" {
+			m.PermissionMiddleware(h.handleReadActivitiesCount)(w, r)
+			break
+		}
 		if dateParam := r.PathValue("date"); len(dateParam) > 0 {
 			m.PermissionMiddleware(h.handleReadByDate)(w, r)
 			break
@@ -106,6 +112,21 @@ func (h *WorkoutHandler) handleReadActivites(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
 
+}
+
+func (h *WorkoutHandler) handleReadActivitiesCount(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("userID").(primitive.ObjectID)
+
+	count, err := h.Service.GetActivityCountByUserId(userID)
+	if err != nil {
+		http.Error(w, "Error fetching activities count", http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(count); err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	}
 }
 
 func (h *WorkoutHandler) handleUpdateWorkout(w http.ResponseWriter, r *http.Request) {

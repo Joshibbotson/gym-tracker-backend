@@ -71,9 +71,9 @@ to simplify things.
 // 	}
 // }
 
-func (h *AuthHandler) HandleUserDetails(w http.ResponseWriter, r *http.Request) {
-
-}
+// func (h *AuthHandler) HandleUserDetails(w http.ResponseWriter, r *http.Request) {
+// 	userId, err :=
+// }
 
 // handleGoogleLogin redirects the user to Google's OAuth 2.0 server
 func (h *AuthHandler) HandleGoogleLogin(w http.ResponseWriter, r *http.Request) {

@@ -13,6 +13,7 @@ import (
 type WorkoutService interface {
 	CreateWorkout(userID primitive.ObjectID, workout t.CreateWorkoutRequest) (*t.Workout, error)
 	GetWorkoutsByUserId(userID primitive.ObjectID) ([]t.YearlyData, error)
+	GetActivityCountByUserId(userID primitive.ObjectID) (int64, error)
 	GetWorkoutsByDate(userID primitive.ObjectID, date time.Time) ([]t.Workout, error)
 	UpdateWorkout(userID primitive.ObjectID, workout t.UpdateWorkoutRequest) ([]t.Workout, error)
 	DeleteWorkout(workoutID primitive.ObjectID) (bool, error)
@@ -64,6 +65,11 @@ func (s *workoutService) GetWorkoutsByUserId(userID primitive.ObjectID) ([]t.Yea
 	}
 
 	return fillMissingDates(workouts), nil
+}
+
+func (s *workoutService) GetActivityCountByUserId(userID primitive.ObjectID) (int64, error) {
+
+	return s.repo.FetchActivityCountByUserId(context.TODO(), userID)
 }
 
 func fillMissingDates(workoutData []t.YearlyData) []t.YearlyData {

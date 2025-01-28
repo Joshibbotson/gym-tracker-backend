@@ -17,6 +17,7 @@ type WorkoutRepository interface {
 	InsertWorkout(ctx context.Context, workout t.Workout) (*t.Workout, error)
 	FetchWorkoutByDate(ctx context.Context, userId primitive.ObjectID, date time.Time) ([]t.Workout, error)
 	FetchWorkoutsByUserId(ctx context.Context, userID primitive.ObjectID) ([]t.YearlyData, error)
+	FetchActivityCountByUserId(ctx context.Context, userID primitive.ObjectID) (int64, error)
 	UpdateWorkout(ctx context.Context, workout t.Workout) (*t.Workout, error)
 	RemoveWorkout(ctx context.Context, workoutID primitive.ObjectID) (bool, error)
 }
@@ -143,6 +144,17 @@ func (r *workoutRepository) FetchWorkoutsByUserId(ctx context.Context, userID pr
 	}
 
 	return results, nil
+}
+
+func (r *workoutRepository) FetchActivityCountByUserId(ctx context.Context, userId primitive.ObjectID) (int64, error) {
+	filter := bson.M{
+		"userId": userId,
+	}
+	count, err := r.workoutCollection.CountDocuments(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }
 
 func (r *workoutRepository) UpdateWorkout(ctx context.Context, workout t.Workout) (*t.Workout, error) {
