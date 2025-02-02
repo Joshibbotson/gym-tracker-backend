@@ -5,14 +5,24 @@ import (
 )
 
 type WorkoutConfig struct {
-	Weight       *float64        `json:"weight,omitempty" bson:"weight,omitempty"`
-	WorkoutType  *c.WorkoutType  `json:"workoutType,omitempty" bson:"workoutType,omitempty"`
-	CaloriePhase *c.CaloriePhase `json:"caloriePhase,omitempty" bson:"caloriePhase,omitempty"`
-	ChestSize    *float64        `json:"chestSize,omitempty" bson:"chestSize,omitempty"`
-	WaistSize    *float64        `json:"waistSize,omitempty" bson:"waistSize,omitempty"`
-	HipSize      *float64        `json:"hipSize,omitempty" bson:"hipSize,omitempty"`
-	BicepSize    *float64        `json:"bicepSize,omitempty" bson:"bicepSize,omitempty"`
-	ForearmSize  *float64        `json:"forearmSize,omitempty" bson:"forearmSize,omitempty"`
-	ThighSize    *float64        `json:"thighSize,omitempty" bson:"thighSize,omitempty"`
-	CalfSize     *float64        `json:"calfSize,omitempty" bson:"calfSize,omitempty"`
+	Weight           *float64          `json:"weight,omitempty" bson:"weight,omitempty"`
+	TargetMuscles    []c.TargetMuscles `json:"targetMuscles,omitempty" bson:"targetMuscles,omitempty"`
+	CaloriePhase     *c.CaloriePhase   `json:"caloriePhase,omitempty" bson:"caloriePhase,omitempty"`
+	NeckSize         *float64          `json:"neckSize,omitempty" bson:"neckSize,omitempty"`
+	ShoulderSize     *float64          `json:"shoulderSize,omitempty" bson:"shoulderSize,omitempty"`
+	LeftCalfSize     *float64          `json:"leftCalfSize,omitempty" bson:"leftCalfSize,omitempty"`
+	RightCalfSize    *float64          `json:"rightCalfSize,omitempty" bson:"rightCalfSize,omitempty"`
+	LeftAnkleSize    *float64          `json:"leftAnkleSize,omitempty" bson:"leftAnkleSize,omitempty"`
+	RightAnkleSize   *float64          `json:"rightAnkleSize,omitempty" bson:"rightAnkleSize,omitempty"`
+	LeftThighSize    *float64          `json:"leftThighSize,omitempty" bson:"leftThighSize,omitempty"`
+	RightThighSize   *float64          `json:"rightThighSize,omitempty" bson:"rightThighSize,omitempty"`
+	LeftWristSize    *float64          `json:"leftWristSize,omitempty" bson:"leftWristSize,omitempty"`
+	RightWristSize   *float64          `json:"rightWristSize,omitempty" bson:"rightWristSize,omitempty"`
+	ChestSize        *float64          `json:"chestSize,omitempty" bson:"chestSize,omitempty"`
+	WaistSize        *float64          `json:"waistSize,omitempty" bson:"waistSize,omitempty"`
+	HipSize          *float64          `json:"hipSize,omitempty" bson:"hipSize,omitempty"`
+	LeftBicepSize    *float64          `json:"leftBicepSize,omitempty" bson:"leftBicepSize,omitempty"`
+	RightBicepSize   *float64          `json:"rightBicepSize,omitempty" bson:"rightBicepSize,omitempty"`
+	LeftForearmSize  *float64          `json:"leftForearmSize,omitempty" bson:"leftForearmSize,omitempty"`
+	RightForearmSize *float64          `json:"rightForearmSize,omitempty" bson:"rightForearmSize,omitempty"`
 }

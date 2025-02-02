@@ -29,16 +29,26 @@ func NewWorkoutService(repo WorkoutRepository) WorkoutService {
 
 func (s *workoutService) CreateWorkout(userID primitive.ObjectID, workout t.CreateWorkoutRequest) (*t.Workout, error) {
 	config := t.WorkoutConfig{
-		Weight:       workout.Weight,
-		WorkoutType:  workout.WorkoutType,
-		CaloriePhase: workout.CaloriePhase,
-		ChestSize:    workout.ChestSize,
-		WaistSize:    workout.WaistSize,
-		HipSize:      workout.HipSize,
-		BicepSize:    workout.BicepSize,
-		ForearmSize:  workout.ForearmSize,
-		ThighSize:    workout.ThighSize,
-		CalfSize:     workout.CalfSize,
+		Weight:           workout.Weight,
+		TargetMuscles:    workout.TargetMuscles,
+		CaloriePhase:     workout.CaloriePhase,
+		NeckSize:         workout.NeckSize,
+		ShoulderSize:     workout.ShoulderSize,
+		LeftCalfSize:     workout.LeftCalfSize,
+		RightCalfSize:    workout.RightCalfSize,
+		LeftAnkleSize:    workout.LeftAnkleSize,
+		RightAnkleSize:   workout.RightAnkleSize,
+		LeftThighSize:    workout.LeftThighSize,
+		RightThighSize:   workout.RightThighSize,
+		LeftWristSize:    workout.LeftWristSize,
+		RightWristSize:   workout.RightWristSize,
+		ChestSize:        workout.ChestSize,
+		WaistSize:        workout.WaistSize,
+		HipSize:          workout.HipSize,
+		LeftBicepSize:    workout.LeftBicepSize,
+		RightBicepSize:   workout.RightBicepSize,
+		LeftForearmSize:  workout.LeftForearmSize,
+		RightForearmSize: workout.RightForearmSize,
 	}
 
 	newWorkout := t.Workout{
@@ -143,16 +153,26 @@ func fillMissingDates(workoutData []t.YearlyData) []t.YearlyData {
 
 func (s *workoutService) UpdateWorkout(userID primitive.ObjectID, workout t.UpdateWorkoutRequest) ([]t.Workout, error) {
 	config := t.WorkoutConfig{
-		Weight:       workout.Weight,
-		WorkoutType:  workout.WorkoutType,
-		CaloriePhase: workout.CaloriePhase,
-		ChestSize:    workout.ChestSize,
-		WaistSize:    workout.WaistSize,
-		HipSize:      workout.HipSize,
-		BicepSize:    workout.BicepSize,
-		ForearmSize:  workout.ForearmSize,
-		ThighSize:    workout.ThighSize,
-		CalfSize:     workout.CalfSize,
+		Weight:           workout.Weight,
+		TargetMuscles:    workout.TargetMuscles,
+		CaloriePhase:     workout.CaloriePhase,
+		NeckSize:         workout.NeckSize,
+		ShoulderSize:     workout.ShoulderSize,
+		LeftCalfSize:     workout.LeftCalfSize,
+		RightCalfSize:    workout.RightCalfSize,
+		LeftAnkleSize:    workout.LeftAnkleSize,
+		RightAnkleSize:   workout.RightAnkleSize,
+		LeftThighSize:    workout.LeftThighSize,
+		RightThighSize:   workout.RightThighSize,
+		LeftWristSize:    workout.LeftWristSize,
+		RightWristSize:   workout.RightWristSize,
+		ChestSize:        workout.ChestSize,
+		WaistSize:        workout.WaistSize,
+		HipSize:          workout.HipSize,
+		LeftBicepSize:    workout.LeftBicepSize,
+		RightBicepSize:   workout.RightBicepSize,
+		LeftForearmSize:  workout.LeftForearmSize,
+		RightForearmSize: workout.RightForearmSize,
 	}
 
 	updatedWorkout := t.Workout{
